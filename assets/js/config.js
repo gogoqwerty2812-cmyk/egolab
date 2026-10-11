@@ -143,7 +143,7 @@ export const SITE = {
 
   // ---- Support page contact channels (edit these) --------------------------
   supportChannels: [
-    { id: "email",    name: "Email",    value: "egolab.support@proton.me", href: "mailto:egolab.support@proton.me", icon: "mail" },
+    { id: "email",    name: "Email",    value: "egolab@mailfence.com", href: "mailto:egolab@mailfence.com", icon: "mail" },
     { id: "telegram", name: "Telegram", value: "@egolab_shop",             href: "https://t.me/egolab_shop",        icon: "send" },
   ],
 
