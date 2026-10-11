@@ -851,13 +851,13 @@
       {
         "name": "Instagram",
         "icon": "instagram",
-        "href": "https://instagram.com/peakr",
+        "href": "https://www.instagram.com/egolab_shop/",
         "id": "instagram"
       },
       {
         "name": "Telegram",
         "icon": "send",
-        "href": "https://www.instagram.com/egolab_shop/",
+        "href": "https://t.me/egolab_shop",
         "id": "telegram"
       },
       {
@@ -869,7 +869,7 @@
       {
         "name": "Email",
         "icon": "mail",
-        "href": "egolab.support@proton.me",
+        "href": "egolab@mailfence.com",
         "id": "email"
       }
     ],
@@ -887,6 +887,6 @@
       "anabolic effect",
       "affects body composition"
     ],
-    "updatedAt": 1791293953386
+    "updatedAt": 1791712317974
   }
 }
