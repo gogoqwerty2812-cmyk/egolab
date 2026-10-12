@@ -1,12 +1,13 @@
-import { SITE } from "../config.js?v=6";
-import { getPublishedProducts, getPublishedSettings, getPublishedReviews } from "../db.js?v=6";
-import { Cart } from "../store.js?v=6";
-import { icon, money, esc, placeholder, initTheme, mountChrome, revealOnScroll, toast, skeletonCards, flyToCart, catColor, sampleCornerColor, cutoutImage } from "../ui.js?v=6";
-import { t, getLang } from "../i18n.js?v=6";
+import { SITE } from "../config.js?v=7";
+import { getPublishedProducts, getPublishedSettings, getPublishedReviews } from "../db.js?v=7";
+import { Cart } from "../store.js?v=7";
+import { icon, money, esc, placeholder, initTheme, mountChrome, revealOnScroll, toast, skeletonCards, flyToCart, catColor, sampleCornerColor, cutoutImage } from "../ui.js?v=7";
+import { t, getLang } from "../i18n.js?v=7";
 
 initTheme();
 
 let ALL = [];
+let CATS = []; // category names present in the catalog (drives the landing grid)
 const state = { q: "", cat: "all", sort: "new" };
 
 // Landing sections copy (EN/RU; other languages fall back to EN)
@@ -324,7 +325,51 @@ function card(p) {
   </article>`;
 }
 
+// A clickable category tile for the landing view (reuses the product card look).
+function categoryCard(cat) {
+  const items = ALL.filter((p) => p.category === cat);
+  const cover = items.find((p) => p.images?.[0])?.images?.[0];
+  const media = cover ? `<img src="${esc(cover)}" alt="${esc(cat)}" loading="lazy">` : placeholder();
+  return `
+  <a class="card cat-card reveal" href="#catalog" data-gocat="${esc(cat)}" style="--cat:${catColor(cat)}">
+    <div class="card__media">${media}</div>
+    <div class="card__body">
+      <span class="card__title">${esc(cat)}</span>
+      <div class="card__foot"><span class="price price--sm">${t("items_label", { n: items.length })}</span><span class="cat-card__go">${icon("arrowRight", 18)}</span></div>
+    </div>
+  </a>`;
+}
+
+// paint each media block with its photo's own background colour (no seam)
+function tintMedia(grid) {
+  grid.querySelectorAll(".card__media").forEach((media) => {
+    const im = media.querySelector("img");
+    if (im) sampleCornerColor(im, (col) => { media.style.background = col; im.style.filter = "none"; });
+  });
+}
+
 function apply() {
+  const grid = document.getElementById("grid");
+  const count = document.getElementById("count");
+  const back = document.getElementById("catBack");
+
+  // LANDING: no category chosen and no search → show the category tiles first.
+  if (state.cat === "all" && !state.q.trim()) {
+    if (back) back.innerHTML = "";
+    count.textContent = CATS.length ? t("cats_count", { n: CATS.length }) : "";
+    if (!CATS.length) {
+      grid.className = "";
+      grid.innerHTML = `<div class="empty">${icon("box", 44)}<h3>${t("nothing_found")}</h3></div>`;
+      return;
+    }
+    grid.className = "grid-products";
+    grid.innerHTML = CATS.map(categoryCard).join("");
+    tintMedia(grid);
+    revealOnScroll();
+    return;
+  }
+
+  // PRODUCTS: a category (or search) is active → show the matching products.
   let list = ALL.slice();
   if (state.cat !== "all") list = list.filter((p) => p.category === state.cat);
   if (state.q.trim()) {
@@ -335,8 +380,10 @@ function apply() {
   else if (state.sort === "price-desc") list.sort((a, b) => b.price - a.price);
   else list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
-  const grid = document.getElementById("grid");
-  const count = document.getElementById("count");
+  if (back) back.innerHTML = state.cat !== "all"
+    ? `<button type="button" class="cat-back__btn" id="catBackBtn">${icon("arrowLeft", 16)} ${t("all_categories")}</button><span class="cat-back__now">${esc(state.cat)}</span>`
+    : "";
+
   count.textContent = t("items_label", { n: list.length });
   if (!list.length) {
     grid.className = "";
@@ -345,11 +392,7 @@ function apply() {
   }
   grid.className = "grid-products";
   grid.innerHTML = list.map(card).join("");
-  // each card's image area takes the photo's own background colour → no seam
-  grid.querySelectorAll(".card__media").forEach((media) => {
-    const im = media.querySelector("img");
-    if (im) sampleCornerColor(im, (col) => { media.style.background = col; im.style.filter = "none"; });
-  });
+  tintMedia(grid);
   revealOnScroll();
 }
 
@@ -376,6 +419,7 @@ async function init() {
   const managed = (siteSettings.categories && siteSettings.categories.length) ? siteSettings.categories : SITE.categories;
   const present = new Set(ALL.map((p) => p.category).filter(Boolean));
   const cats = ["all", ...managed.filter((c) => present.has(c)), ...[...present].filter((c) => !managed.includes(c))];
+  CATS = cats.filter((c) => c !== "all"); // category tiles shown on the landing
 
   // real reviews (fixed text — do NOT change with the site language)
   let reviewsList = [];
@@ -412,6 +456,7 @@ async function init() {
           ? `<button type="button" class="chip is-active" data-cat="all" aria-pressed="true">${t("cat_all")}</button>`
           : `<button type="button" class="chip" data-cat="${esc(c)}" aria-pressed="false" style="--cat:${catColor(c)}"><i></i>${esc(c)}</button>`).join("")}
       </div>
+      <div id="catBack" class="cat-back"></div>
       <div id="grid" class="grid-products"></div>
     </section>
 
@@ -444,17 +489,34 @@ async function init() {
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
 
-  document.getElementById("q").addEventListener("input", (e) => { state.q = e.target.value; apply(); });
-  document.getElementById("cats").addEventListener("click", (e) => {
-    const chip = e.target.closest(".chip");
-    if (!chip) return;
-    state.cat = chip.dataset.cat;
+  // central place to switch category: keep chips in sync, re-render, scroll up
+  function selectCat(cat, scroll) {
+    state.cat = cat;
     document.querySelectorAll("#cats .chip").forEach((c) => {
-      const on = c === chip;
+      const on = c.dataset.cat === cat;
       c.classList.toggle("is-active", on);
       c.setAttribute("aria-pressed", String(on));
     });
     apply();
+    if (scroll) document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  document.getElementById("q").addEventListener("input", (e) => { state.q = e.target.value; apply(); });
+  document.getElementById("cats").addEventListener("click", (e) => {
+    const chip = e.target.closest(".chip");
+    if (!chip) return;
+    selectCat(chip.dataset.cat);
+  });
+  // click a category tile on the landing → open that category
+  document.getElementById("grid").addEventListener("click", (e) => {
+    const tile = e.target.closest("[data-gocat]");
+    if (!tile) return;
+    e.preventDefault();
+    selectCat(tile.dataset.gocat, true);
+  });
+  // "← All categories" back button returns to the category landing
+  document.getElementById("catBack").addEventListener("click", (e) => {
+    if (e.target.closest("#catBackBtn")) selectCat("all", true);
   });
   // drag-to-scroll the category chips (mouse) + vertical wheel → horizontal
   (function enableChipDrag() {

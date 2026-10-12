@@ -1,7 +1,7 @@
-import { Cart } from "../store.js?v=6";
-import { SITE, SHIPPING } from "../config.js?v=6";
-import { icon, money, esc, placeholder, initTheme, mountChrome, toast, pageHero } from "../ui.js?v=6";
-import { t } from "../i18n.js?v=6";
+import { Cart } from "../store.js?v=7";
+import { SITE, SHIPPING } from "../config.js?v=7";
+import { icon, money, esc, placeholder, initTheme, mountChrome, toast, pageHero } from "../ui.js?v=7";
+import { t } from "../i18n.js?v=7";
 
 initTheme();
 

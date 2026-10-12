@@ -1,9 +1,9 @@
-import { SITE, US_STATES, COUNTRIES } from "../config.js?v=6";
-import { Cart } from "../store.js?v=6";
-import { createOrder } from "../db.js?v=6";
-import { icon, money, esc, initTheme, mountChrome, toast, copyText, pageHero } from "../ui.js?v=6";
-import { t } from "../i18n.js?v=6";
-import { sendOrderNotification } from "../notify.js?v=6";
+import { SITE, US_STATES, COUNTRIES } from "../config.js?v=7";
+import { Cart } from "../store.js?v=7";
+import { createOrder } from "../db.js?v=7";
+import { icon, money, esc, initTheme, mountChrome, toast, copyText, pageHero } from "../ui.js?v=7";
+import { t } from "../i18n.js?v=7";
+import { sendOrderNotification } from "../notify.js?v=7";
 
 initTheme();
 
@@ -48,6 +48,22 @@ function coinCards() {
     </button>`).join("");
 }
 
+// Real brand logos for the payment method picker (inline SVG, brand colours).
+const BRAND = {
+  btc: `<svg class="paylogo" viewBox="0 0 32 32" aria-label="Bitcoin"><circle cx="16" cy="16" r="16" fill="#F7931A"/><path fill="#fff" d="M22 14.1c.3-1.9-1.2-2.9-3.2-3.6l.6-2.6-1.6-.4-.6 2.5-1.3-.3.6-2.5-1.5-.4-.7 2.6-1-.3-2.1-.5-.4 1.7s1.1.2 1.1.3c.6.1.7.5.7.8l-1.7 6.9c-.1.2-.3.4-.6.3 0 0-1.1-.3-1.1-.3l-.8 1.8 2 .5 1.1.3-.7 2.6 1.5.4.7-2.6c.4.1.9.2 1.3.3l-.6 2.6 1.5.4.7-2.6c2.7.5 4.7.3 5.5-2.1.7-1.9 0-3-1.4-3.7 1-.2 1.7-.9 1.9-2.3zm-3.5 4.9c-.5 1.9-3.7.9-4.7.6l.9-3.5c1 .3 4.3.8 3.8 2.9zm.5-5c-.4 1.8-3.1.9-4 .6l.8-3.2c.9.2 3.7.6 3.2 2.6z"/></svg>`,
+  eth: `<svg class="paylogo" viewBox="0 0 32 32" aria-label="Ethereum"><circle cx="16" cy="16" r="16" fill="#627EEA"/><g fill="#fff"><path fill-opacity=".6" d="M16 4v8.9l7.5 3.4z"/><path d="M16 4 8.5 16.3 16 12.9z"/><path fill-opacity=".6" d="M16 21.9V28l7.5-10.4z"/><path d="M16 28v-6.1l-7.5-4.3z"/><path fill-opacity=".2" d="m16 20.6 7.5-4.3L16 12.9z"/><path fill-opacity=".6" d="M8.5 16.3 16 20.6v-7.7z"/></g></svg>`,
+  usdt: `<svg class="paylogo" viewBox="0 0 32 32" aria-label="Tether"><circle cx="16" cy="16" r="16" fill="#26A17B"/><path fill="#fff" d="M17.9 14v-2.3h5.3V8.2H8.9v3.5h5.3V14c-4.3.2-7.5 1-7.5 2.1s3.2 1.9 7.5 2.1v6.8h3.7v-6.8c4.3-.2 7.5-1 7.5-2.1s-3.2-1.9-7.5-2.1zm0 3.5c-.1 0-.7.1-1.9.1s-1.7 0-1.8-.1c-3.7-.1-6.5-.8-6.5-1.5s2.8-1.3 6.5-1.5v2.3c.1 0 .9.1 1.8.1 1.2 0 1.8-.1 1.9-.1v-2.3c3.7.2 6.4.8 6.4 1.5s-2.7 1.4-6.4 1.5z"/></svg>`,
+  visa: `<svg class="paylogo paylogo--wide" viewBox="0 0 48 16" aria-label="Visa"><text x="24" y="13" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="800" font-style="italic" fill="#1A1F71">VISA</text></svg>`,
+  mc: `<svg class="paylogo" viewBox="0 0 48 32" aria-label="Mastercard"><circle cx="19" cy="16" r="11" fill="#EB001B"/><circle cx="29" cy="16" r="11" fill="#F79E1B" fill-opacity=".9"/><path fill="#FF5F00" d="M24 7.6a11 11 0 0 0 0 16.8 11 11 0 0 0 0-16.8z"/></svg>`,
+  paypal: `<svg class="paylogo paylogo--wide" viewBox="0 0 74 20" aria-label="PayPal"><text x="0" y="16" font-family="Arial,Helvetica,sans-serif" font-size="17" font-weight="800" font-style="italic"><tspan fill="#003087">Pay</tspan><tspan fill="#009CDE">Pal</tspan></text></svg>`,
+};
+function payLogos(id) {
+  if (id === "crypto") return `${BRAND.btc}${BRAND.eth}${BRAND.usdt}`;
+  if (id === "card") return `${BRAND.visa}${BRAND.mc}`;
+  if (id === "paypal") return BRAND.paypal;
+  return "";
+}
+
 // Payment methods. Only crypto is live; card + PayPal are shown as "coming soon".
 function methodCards() {
   const methods = [
@@ -57,7 +73,7 @@ function methodCards() {
   ];
   return methods.map((m) => `
     <button type="button" class="method${m.live ? "" : " is-soon"}" data-method="${m.id}" role="radio" aria-checked="false"${m.live ? ' aria-controls="cryptoArea" aria-expanded="false"' : ' aria-disabled="true"'}>
-      <span class="method__ic">${icon(m.icon, 22)}</span>
+      <span class="method__logos">${payLogos(m.id)}</span>
       <span class="method__body"><span class="method__title">${esc(m.title)}</span><span class="method__sub">${esc(m.sub)}</span></span>
       ${m.live ? `<span class="method__chev">${icon("arrowRight", 16)}</span>` : `<span class="method__soon">${esc(t("soon"))}</span>`}
     </button>`).join("");
