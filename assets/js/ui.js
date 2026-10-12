@@ -1,10 +1,10 @@
 // =============================================================================
 //  ui.js — shared chrome: header, footer, theme, toasts, icons, helpers
 // =============================================================================
-import { SITE } from "./config.js?v=7";
-import { Cart } from "./store.js?v=7";
-import { getPublishedSettings } from "./db.js?v=7";
-import { t, getLang, setLang, LANGUAGES } from "./i18n.js?v=7";
+import { SITE } from "./config.js?v=8";
+import { Cart } from "./store.js?v=8";
+import { getPublishedSettings } from "./db.js?v=8";
+import { t, getLang, setLang, LANGUAGES } from "./i18n.js?v=8";
 
 // ---- Icons (inline SVG, Lucide-style) --------------------------------------
 export const icon = (name, size = 20) => {
@@ -168,6 +168,23 @@ export function cutoutImage(img, { tol = 50 } = {}) {
       for (let x = 0; x < w; x++) { push(x, 0); push(x, h - 1); }
       for (let y = 0; y < h; y++) { push(0, y); push(w - 1, y); }
       while (st.length) { const i = st.pop(); px[i * 4 + 3] = 0; const x = i % w, y = (i / w) | 0; push(x + 1, y); push(x - 1, y); push(x, y + 1); push(x, y - 1); }
+      // Anti-alias the hard flood-fill boundary so the cut-out isn't ragged:
+      // 3×3 box-blur of the alpha channel turns the 1px step into a soft edge.
+      const alpha = new Uint8ClampedArray(N);
+      for (let i = 0; i < N; i++) alpha[i] = px[i * 4 + 3];
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          let sum = 0, cnt = 0;
+          for (let dy = -1; dy <= 1; dy++) {
+            const ny = y + dy; if (ny < 0 || ny >= h) continue;
+            for (let dx = -1; dx <= 1; dx++) {
+              const nx = x + dx; if (nx < 0 || nx >= w) continue;
+              sum += alpha[ny * w + nx]; cnt++;
+            }
+          }
+          px[(y * w + x) * 4 + 3] = (sum / cnt) | 0;
+        }
+      }
       ctx.putImageData(data, 0, 0);
       img.src = c.toDataURL("image/png");
     } catch {}

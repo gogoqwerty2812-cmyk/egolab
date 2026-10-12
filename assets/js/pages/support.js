@@ -1,8 +1,8 @@
-import { SITE } from "../config.js?v=7";
-import { createTicket } from "../db.js?v=7";
-import { icon, esc, safeUrl, initTheme, mountChrome, toast, pageHero } from "../ui.js?v=7";
-import { t } from "../i18n.js?v=7";
-import { sendTicketNotification } from "../notify.js?v=7";
+import { SITE } from "../config.js?v=8";
+import { createTicket } from "../db.js?v=8";
+import { icon, esc, safeUrl, initTheme, mountChrome, toast, pageHero } from "../ui.js?v=8";
+import { t } from "../i18n.js?v=8";
+import { sendTicketNotification } from "../notify.js?v=8";
 
 initTheme();
 
