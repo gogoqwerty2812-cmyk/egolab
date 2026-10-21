@@ -225,6 +225,7 @@ export const COUNTRIES = [
   ["PL", "Poland"],
   ["RS", "Serbia"],
   ["BG", "Bulgaria"],
+  ["CZ", "Czechia"],
 ];
 
 // -----------------------------------------------------------------------------
@@ -245,7 +246,7 @@ export const PROMO_CODES = Object.freeze({
 //  Amounts are in the store currency (USD).
 // -----------------------------------------------------------------------------
 export const SHIPPING = Object.freeze({
-  fee: 7,
+  fee: 15,
   freeThreshold: 99,
 });
 
