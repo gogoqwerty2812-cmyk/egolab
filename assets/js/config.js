@@ -246,7 +246,7 @@ export const PROMO_CODES = Object.freeze({
 //  Amounts are in the store currency (USD).
 // -----------------------------------------------------------------------------
 export const SHIPPING = Object.freeze({
-  fee: 15,
+  fee: 17,
   freeThreshold: 99,
 });
 
