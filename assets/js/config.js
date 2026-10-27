@@ -96,7 +96,7 @@ export const SITE = {
   // it's empty the card option stays "Coming soon".
   cardPayment: {
     enabled: true,
-    workerUrl: "",
+    workerUrl: "https://egolab-pay.gogoqwerty2812.workers.dev",
   },
 
   // ---- Admin ----------------------------------------------------------------
