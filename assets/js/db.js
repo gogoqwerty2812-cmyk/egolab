@@ -1,7 +1,7 @@
 // =============================================================================
 //  db.js — IndexedDB storage layer (products + orders) with seed data
 // =============================================================================
-import { SITE } from "./config.js?v=9";
+import { SITE } from "./config.js?v=10";
 
 const DB_NAME = "marketplace_db";
 const DB_VERSION = 4;
@@ -259,6 +259,13 @@ export async function updateOrderStatus(id, status) {
   const o = await getOrder(id);
   if (!o) return null;
   o.status = status;
+  await tx(STORE_ORDERS, "readwrite", (os) => os.put(o));
+  return o;
+}
+export async function updateOrder(id, patch) {
+  const o = await getOrder(id);
+  if (!o) return null;
+  Object.assign(o, patch);
   await tx(STORE_ORDERS, "readwrite", (os) => os.put(o));
   return o;
 }

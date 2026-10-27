@@ -1,9 +1,9 @@
-import { SITE, US_STATES, COUNTRIES } from "../config.js?v=9";
-import { Cart } from "../store.js?v=9";
-import { createOrder } from "../db.js?v=9";
-import { icon, money, esc, initTheme, mountChrome, toast, copyText, pageHero } from "../ui.js?v=9";
-import { t } from "../i18n.js?v=9";
-import { sendOrderNotification } from "../notify.js?v=9";
+import { SITE, US_STATES, COUNTRIES } from "../config.js?v=10";
+import { Cart } from "../store.js?v=10";
+import { createOrder, updateOrder, deleteOrder } from "../db.js?v=10";
+import { icon, money, esc, initTheme, mountChrome, toast, copyText, pageHero } from "../ui.js?v=10";
+import { t } from "../i18n.js?v=10";
+import { sendOrderNotification } from "../notify.js?v=10";
 
 initTheme();
 
@@ -14,6 +14,10 @@ const discount = Cart.discount();
 const shippingFee = Cart.shipping();
 const total = Cart.total();
 let selectedCoin = null;
+let selectedMethod = null; // "crypto" | "card"
+
+// Card payments go live once the 1pay Worker URL is set in config.js.
+const cardLive = () => !!(SITE.cardPayment?.enabled && SITE.cardPayment?.workerUrl);
 
 function summaryHTML() {
   return `
@@ -34,7 +38,7 @@ function summaryHTML() {
       ${promo ? `<div class="summary__row" style="color:var(--accent)"><span>${t("discount")} · ${esc(promo.code.toUpperCase())} (${promo.pct}%)</span><span>−${money(discount)}</span></div>` : ""}
       <div class="summary__row"><span>${t("shipping")}</span><span>${shippingFee === 0 ? t("free") : money(shippingFee)}</span></div>
       <div class="summary__total"><span>${t("total_due")}</span><b>${money(total)}</b></div>
-      <p class="hint">${t("pay_exact")}</p>
+      <p class="hint" id="payExact">${t("pay_exact")}</p>
     </aside>`;
 }
 
@@ -64,15 +68,16 @@ function payLogos(id) {
   return "";
 }
 
-// Payment methods. Only crypto is live; card + PayPal are shown as "coming soon".
+// Payment methods. Crypto is live; card is live once the 1pay Worker is set up;
+// PayPal is shown as "coming soon".
 function methodCards() {
   const methods = [
     { id: "crypto", icon: "bitcoin", title: t("pm_crypto"), sub: "BTC · ETH · USDT", live: true },
-    { id: "card", icon: "card", title: t("pm_card"), sub: "Visa · Mastercard · Apple Pay", live: false },
+    { id: "card", icon: "card", title: t("pm_card"), sub: "Visa · Mastercard · Apple Pay", live: cardLive() },
     { id: "paypal", icon: "paypal", title: "PayPal", sub: t("pm_paypal_sub"), live: false },
   ];
   return methods.map((m) => `
-    <button type="button" class="method${m.live ? "" : " is-soon"}" data-method="${m.id}" role="radio" aria-checked="false"${m.live ? ' aria-controls="cryptoArea" aria-expanded="false"' : ' aria-disabled="true"'}>
+    <button type="button" class="method${m.live ? "" : " is-soon"}" data-method="${m.id}" role="radio" aria-checked="false"${m.live ? ` aria-controls="${m.id}Area" aria-expanded="false"` : ' aria-disabled="true"'}>
       <span class="method__logos">${payLogos(m.id)}</span>
       <span class="method__body"><span class="method__title">${esc(m.title)}</span><span class="method__sub">${esc(m.sub)}</span></span>
       ${m.live ? `<span class="method__chev">${icon("arrowRight", 16)}</span>` : `<span class="method__soon">${esc(t("soon"))}</span>`}
@@ -117,6 +122,25 @@ function renderPayBox(w) {
   document.getElementById("copyAddr").addEventListener("click", () => {
     copyText(w.address).then(() => toast(t("copied")));
   });
+}
+
+// Ask the 1pay Worker for a hosted card checkout. It recalculates the total from
+// the published catalog and answers 409 "price_changed" if the cart is stale.
+async function createCardPayment(order, email) {
+  const res = await fetch(`${SITE.cardPayment.workerUrl.replace(/\/$/, "")}/create`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      orderId: order.id,
+      items: order.items.map((i) => ({ id: i.id, qty: i.qty })),
+      promoCode: order.promoCode,
+      total: order.total,
+      email: email || "",
+    }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.url) throw new Error(data.error || "provider_error");
+  return data;
 }
 
 // ---- validation ------------------------------------------------------------
@@ -224,41 +248,60 @@ function init() {
               <div class="coin-grid" id="coinGrid">${coinCards()}</div>
               <div class="pay-box" id="payBox"></div>
             </div>
+            <div class="crypto-area" id="cardArea" hidden>
+              <p class="hint" style="margin:var(--space-5) 0 0">${t("card_note")}</p>
+            </div>
             <input type="hidden" name="coin" id="coinInput">
             <div class="field" data-field="coin" style="margin-top:10px"><div class="error-text"></div></div>
           </section>
 
           <section class="panel">
             <div class="panel__title"><span class="step-num">3</span> ${t("step_confirm")}</div>
-            <div class="field" data-field="txhash">
+            <div class="field" data-field="txhash" id="txField">
               <label class="label" for="txhash">${t("tx_hash")} <span class="req">*</span></label>
               <input class="input" id="txhash" name="txhash" placeholder="${t("tx_ph")}">
               <div class="hint">${t("tx_hint")}</div>
               <div class="error-text"></div>
             </div>
-            <button class="btn btn--primary btn--block btn--lg" type="submit" style="margin-top:var(--space-4)">
-              ${icon("check", 18)} ${t("place_order")} · ${money(total)}
+            <button class="btn btn--primary btn--block btn--lg" type="submit" id="submitBtn" style="margin-top:var(--space-4)">
+              ${icon("check", 18)} <span id="submitLabel">${t("place_order")}</span> · ${money(total)}
             </button>
-            <p class="hint" style="text-align:center;margin-top:10px">${icon("shield", 13)} ${t("pending_note")}</p>
+            <p class="hint" style="text-align:center;margin-top:10px">${icon("shield", 13)} <span id="pendingNote">${t("pending_note")}</span></p>
           </section>
         </div>
         ${summaryHTML()}
       </div>
     </form>`;
 
-  // payment method: crypto reveals the coins; card / PayPal are not live yet
+  // payment method: crypto reveals the coins, card explains the 1pay redirect;
+  // PayPal is not live yet
   const methodGrid = document.getElementById("methodGrid");
-  const cryptoArea = document.getElementById("cryptoArea");
-  const openCrypto = () => {
-    const btn = methodGrid.querySelector('[data-method="crypto"]');
-    btn.classList.add("is-selected");
-    btn.setAttribute("aria-checked", "true");
-    btn.setAttribute("aria-expanded", "true");
-    if (cryptoArea.hidden) {
-      cryptoArea.hidden = false;
-      cryptoArea.classList.remove("is-in"); void cryptoArea.offsetWidth; cryptoArea.classList.add("is-in");
-    }
+  const selectMethod = (id) => {
+    selectedMethod = id;
+    methodGrid.querySelectorAll(".method:not(.is-soon)").forEach((btn) => {
+      const on = btn.dataset.method === id;
+      btn.classList.toggle("is-selected", on);
+      btn.setAttribute("aria-checked", String(on));
+      btn.setAttribute("aria-expanded", String(on));
+    });
+    ["crypto", "card"].forEach((m) => {
+      const area = document.getElementById(`${m}Area`);
+      if (m !== id) { area.hidden = true; return; }
+      if (area.hidden) {
+        area.hidden = false;
+        area.classList.remove("is-in"); void area.offsetWidth; area.classList.add("is-in");
+      }
+    });
+    // a card buyer has no TX hash — 1pay confirms the payment for us
+    const isCard = id === "card";
+    document.getElementById("txField").hidden = isCard;
+    if (isCard) setError("txhash", "");
+    setError("coin", "");
+    document.getElementById("submitLabel").textContent = isCard ? t("pay_by_card") : t("place_order");
+    document.getElementById("pendingNote").textContent = isCard ? t("card_pending_note") : t("pending_note");
+    document.getElementById("payExact").textContent = isCard ? t("card_pay_exact") : t("pay_exact");
   };
+  const openCrypto = () => selectMethod("crypto");
   methodGrid.addEventListener("click", (e) => {
     const b = e.target.closest(".method");
     if (!b) return;
@@ -267,7 +310,7 @@ function init() {
       b.classList.remove("nope"); void b.offsetWidth; b.classList.add("nope");
       return;
     }
-    openCrypto();
+    selectMethod(b.dataset.method);
   });
 
   // coin selection
@@ -309,10 +352,12 @@ function init() {
     e.preventDefault();
     const f = e.target;
     const isUS = f.country.value === "US";
-    const required = isUS ? [...REQUIRED, "state"] : REQUIRED;
+    const isCard = selectedMethod === "card";
+    let required = isUS ? [...REQUIRED, "state"] : REQUIRED;
+    if (isCard) required = required.filter((n) => n !== "txhash");
     let ok = true;
     required.forEach((n) => { if (!validateField(n, f[n].value)) ok = false; });
-    if (!selectedCoin) { openCrypto(); setError("coin", t("err_coin")); ok = false; }
+    if (!isCard && !selectedCoin) { openCrypto(); setError("coin", t("err_coin")); ok = false; }
     if (!ok) {
       toast(t("err_fix"), "err");
       document.querySelector(".field--invalid")?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -351,14 +396,38 @@ function init() {
         // kept for backward compatibility with earlier orders / views
         facebook: contacts.facebook || "",
       },
-      payment: {
-        coin: selectedCoin.id,
-        coinName: selectedCoin.name,
-        network: selectedCoin.network,
-        walletAddress: selectedCoin.address,
-        txHash: f.txhash.value.trim(),
-      },
+      payment: isCard
+        ? { method: "card", provider: "1pay", coin: "CARD", coinName: t("pm_card"), network: "1pay.cx", walletAddress: "", txHash: "" }
+        : {
+          coin: selectedCoin.id,
+          coinName: selectedCoin.name,
+          network: selectedCoin.network,
+          walletAddress: selectedCoin.address,
+          txHash: f.txhash.value.trim(),
+        },
     });
+
+    if (isCard) {
+      const btn = document.getElementById("submitBtn");
+      btn.disabled = true;
+      toast(t("card_redirecting"));
+      let pay;
+      try {
+        pay = await createCardPayment(order, contacts.email);
+      } catch (err) {
+        await deleteOrder(order.id);
+        btn.disabled = false;
+        toast(err.message === "price_changed" ? t("card_price_changed") : t("card_error"), "err");
+        return;
+      }
+      const saved = await updateOrder(order.id, {
+        payment: { ...order.payment, paymentId: pay.paymentId, checkoutUrl: pay.url },
+      });
+      try { await sendOrderNotification(saved); } catch {}
+      Cart.clear();
+      location.href = pay.url;
+      return;
+    }
 
     try { await sendOrderNotification(order); } catch {}
     Cart.clear();

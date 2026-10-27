@@ -89,6 +89,16 @@ export const SITE = {
     },
   ],
 
+  // ---- Card payments (Visa / Mastercard / Apple Pay) via 1pay.cx ------------
+  // The buyer pays by card on 1pay's page; the proceeds arrive as USDT (BEP-20)
+  // in our wallet. The secret API key lives in a Cloudflare Worker
+  // (worker/onepay-worker.js), never here. Paste the Worker's URL below; while
+  // it's empty the card option stays "Coming soon".
+  cardPayment: {
+    enabled: true,
+    workerUrl: "",
+  },
+
   // ---- Admin ----------------------------------------------------------------
   // The password is stored ONLY as a SHA-256 hash, so the plaintext never
   // appears in the repo (the old Telegram token was scraped from here the same

@@ -1,7 +1,7 @@
-import { getOrder } from "../db.js?v=9";
-import { SITE } from "../config.js?v=9";
-import { icon, money, esc, safeUrl, initTheme, mountChrome, qs, copyText, toast } from "../ui.js?v=9";
-import { t } from "../i18n.js?v=9";
+import { getOrder, updateOrderStatus } from "../db.js?v=10";
+import { SITE } from "../config.js?v=10";
+import { icon, money, esc, safeUrl, initTheme, mountChrome, qs, copyText, toast } from "../ui.js?v=10";
+import { t } from "../i18n.js?v=10";
 
 initTheme();
 
@@ -52,13 +52,14 @@ async function init() {
     return;
   }
 
+  const isCard = o.payment.method === "card";
   const date = new Date(o.createdAt).toLocaleString();
   app.innerHTML = `
     <div class="confirm-hero reveal in">
       <div class="confirm-check">${icon("check", 38)}</div>
       <h1 style="font-size:2.6rem">${t("thank_you")}</h1>
       <p class="muted">${t("order_word")} <b>#${o.id.toUpperCase()}</b> · ${esc(date)}</p>
-      <p style="margin-top:8px"><span class="badge ${statusClass(o.status)}"><span class="status-dot"></span> ${esc(o.status)}</span></p>
+      <p style="margin-top:8px" id="orderStatus">${statusBadge(o.status)}</p>
     </div>
 
     <div class="checkout-layout" style="align-items:start">
@@ -94,18 +95,67 @@ async function init() {
 
       <aside class="summary" style="position:static">
         <div class="panel__title">${icon("shield", 18)} ${t("payment")}</div>
+        ${isCard ? `
+        <dl class="kv" style="grid-template-columns:110px 1fr">
+          <dt>${t("method_word")}</dt><dd>${esc(t("pm_card"))} · Visa / Mastercard</dd>
+          <dt>${t("pay_status")}</dt><dd id="cardStatus" class="muted">${t("ps_checking")}</dd>
+        </dl>
+        <div id="cardAction"></div>` : `
         <dl class="kv" style="grid-template-columns:110px 1fr">
           <dt>${t("coin")}</dt><dd>${esc(o.payment.coinName)} (${esc(o.payment.coin)})</dd>
           <dt>${t("network")}</dt><dd>${esc(o.payment.network)}</dd>
           <dt>${t("wallet")}</dt><dd style="font-family:var(--font-mono);font-size:.8rem;word-break:break-all">${esc(o.payment.walletAddress)}</dd>
           <dt>${t("tx_hash")}</dt><dd style="font-family:var(--font-mono);font-size:.8rem;word-break:break-all">${esc(o.payment.txHash)} <button class="icon-btn" id="copyTx" style="width:28px;height:28px;vertical-align:middle" aria-label="${t("copied")}">${icon("copy", 13)}</button></dd>
-        </dl>
+        </dl>`}
         <a class="btn btn--primary btn--block" href="index.html" style="margin-top:var(--space-5)">${icon("bag", 16)} ${t("continue_shopping")}</a>
         <a class="btn btn--ghost btn--block" href="admin.html" style="margin-top:10px">${t("view_dashboard")}</a>
       </aside>
     </div>`;
 
   document.getElementById("copyTx")?.addEventListener("click", () => copyText(o.payment.txHash).then(() => toast(t("copied"))));
+  if (isCard) watchCardPayment(o);
+}
+
+function statusBadge(s) {
+  return `<span class="badge ${statusClass(s)}"><span class="status-dot"></span> ${esc(s)}</span>`;
+}
+
+// Card orders: ask the 1pay Worker for the real payment status. The buyer's
+// return from the checkout page proves nothing, so only "paid" from 1pay counts.
+// While pending we keep polling for a few minutes (card confirmations are quick).
+async function watchCardPayment(o) {
+  const el = document.getElementById("cardStatus");
+  const action = document.getElementById("cardAction");
+  const base = SITE.cardPayment?.workerUrl?.replace(/\/$/, "");
+  if (!base || !o.payment.paymentId) { el.textContent = t("ps_unknown"); return; }
+
+  const labels = { pending: t("ps_pending"), paid: t("ps_paid"), expired: t("ps_expired"), underpaid: t("ps_underpaid"), failed: t("ps_expired") };
+  for (let attempt = 0; attempt < 40; attempt++) {
+    let st = null;
+    try {
+      const res = await fetch(`${base}/status?id=${encodeURIComponent(o.payment.paymentId)}`);
+      if (res.ok) st = (await res.json()).status;
+    } catch {}
+    el.textContent = labels[st] || t("ps_unknown");
+    el.classList.toggle("muted", st !== "paid");
+    el.style.color = st === "paid" ? "var(--accent)" : "";
+
+    if (st === "paid") {
+      action.innerHTML = "";
+      if (o.status === "Pending payment") {
+        await updateOrderStatus(o.id, "Payment received");
+        document.getElementById("orderStatus").innerHTML = statusBadge("Payment received");
+      }
+      return;
+    }
+    if (st === "pending" && o.payment.checkoutUrl) {
+      action.innerHTML = `<a class="btn btn--primary btn--block" href="${esc(safeUrl(o.payment.checkoutUrl))}" style="margin-top:var(--space-4)">${icon("card", 16)} ${t("pay_now")}</a>`;
+    } else {
+      action.innerHTML = "";
+    }
+    if (st && st !== "pending") return;
+    await new Promise((r) => setTimeout(r, 8000));
+  }
 }
 
 init();

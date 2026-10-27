@@ -3,7 +3,7 @@
 //  Works on static hosting (GitHub Pages) because it POSTs straight to the
 //  Telegram Bot API from the browser. No-op if not configured in config.js.
 // =============================================================================
-import { SITE } from "./config.js?v=9";
+import { SITE } from "./config.js?v=10";
 
 // Reassemble the bot token that config.js stores encoded + split, so the raw
 // `<digits>:AA...` string never appears in the repo for scrapers to grab.
@@ -60,9 +60,17 @@ export async function sendOrderNotification(order) {
     `Phone: ${c.phone || "—"}`,
     contacts ? `Contacts:\n${contacts}` : "",
     "",
-    `Payment: ${p.coinName || ""} (${p.coin || ""}) — ${p.network || ""}`,
-    `Wallet: ${p.walletAddress || ""}`,
-    `TX hash: ${p.txHash || ""}`,
+    ...(p.method === "card"
+      ? [
+        "Payment: 💳 Bank card via 1pay — AWAITING PAYMENT",
+        `1pay payment: ${p.paymentId || "—"}`,
+        "A separate ✅ PAID message arrives once the card payment goes through.",
+      ]
+      : [
+        `Payment: ${p.coinName || ""} (${p.coin || ""}) — ${p.network || ""}`,
+        `Wallet: ${p.walletAddress || ""}`,
+        `TX hash: ${p.txHash || ""}`,
+      ]),
   ].filter(Boolean);
   return tgSend(tg, lines.join("\n"));
 }
