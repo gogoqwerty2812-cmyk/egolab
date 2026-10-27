@@ -1,7 +1,7 @@
-import { getPublishedProduct, getPublishedProducts } from "../db.js?v=10";
-import { Cart } from "../store.js?v=10";
-import { icon, money, esc, placeholder, initTheme, mountChrome, revealOnScroll, toast, qs, flyToCart, catColor, sampleCornerColor } from "../ui.js?v=10";
-import { t } from "../i18n.js?v=10";
+import { getPublishedProduct, getPublishedProducts } from "../db.js?v=11";
+import { Cart } from "../store.js?v=11";
+import { icon, money, esc, placeholder, initTheme, mountChrome, revealOnScroll, toast, qs, flyToCart, catColor, sampleCornerColor } from "../ui.js?v=11";
+import { t } from "../i18n.js?v=11";
 
 initTheme();
 

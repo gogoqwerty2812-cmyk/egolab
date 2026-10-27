@@ -1,7 +1,7 @@
-import { getOrder, updateOrderStatus } from "../db.js?v=10";
-import { SITE } from "../config.js?v=10";
-import { icon, money, esc, safeUrl, initTheme, mountChrome, qs, copyText, toast } from "../ui.js?v=10";
-import { t } from "../i18n.js?v=10";
+import { getOrder, updateOrderStatus } from "../db.js?v=11";
+import { SITE } from "../config.js?v=11";
+import { icon, money, esc, safeUrl, initTheme, mountChrome, qs, copyText, toast } from "../ui.js?v=11";
+import { t } from "../i18n.js?v=11";
 
 initTheme();
 

@@ -1,7 +1,7 @@
 // =============================================================================
 //  db.js — IndexedDB storage layer (products + orders) with seed data
 // =============================================================================
-import { SITE } from "./config.js?v=10";
+import { SITE } from "./config.js?v=11";
 
 const DB_NAME = "marketplace_db";
 const DB_VERSION = 4;
@@ -133,13 +133,15 @@ const PUBLISHED_URL = "data/products.json";
 // One-file publishing: everything (products, certificates, reviews, settings)
 // can live in a single data/content.json. If present it wins; otherwise we fall
 // back to the individual data/*.json files. Fetched once per page load.
+// `cache: "no-cache"` keeps it fresh but lets the browser revalidate with the
+// ETag: an unchanged file comes back as a tiny 304 instead of a full download.
 const PUBLISHED_BUNDLE_URL = "data/content.json";
 let _bundlePromise;
 function getBundle() {
   if (_bundlePromise !== undefined) return _bundlePromise;
   _bundlePromise = (async () => {
     try {
-      const res = await fetch(PUBLISHED_BUNDLE_URL + "?t=" + Date.now(), { cache: "no-store" });
+      const res = await fetch(PUBLISHED_BUNDLE_URL, { cache: "no-cache" });
       if (res.ok) {
         const data = await res.json();
         // an old/odd content.json that is a bare array of products still works
@@ -179,7 +181,7 @@ export async function getPublishedProducts() {
   if (b && Array.isArray(b.products) && b.products.length) list = b.products;
   if (!list) {
     try {
-      const res = await fetch(PUBLISHED_URL + "?t=" + Date.now(), { cache: "no-store" });
+      const res = await fetch(PUBLISHED_URL, { cache: "no-cache" });
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data) && data.length) list = data;
@@ -213,7 +215,7 @@ export async function ensureAdminSeed() {
   const count = await tx(STORE_PRODUCTS, "readonly", (os) => reqP(os.count()));
   if (count > 0 || localStorage.getItem("mkt_admin_seeded")) return;
   try {
-    const res = await fetch(PUBLISHED_URL + "?t=" + Date.now(), { cache: "no-store" });
+    const res = await fetch(PUBLISHED_URL, { cache: "no-cache" });
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length) {
@@ -316,7 +318,7 @@ export async function getPublishedCerts() {
   const b = await getBundle();
   if (b && Array.isArray(b.certificates)) return b.certificates.filter((c) => c && typeof c === "object").sort((a, c) => (c.createdAt || 0) - (a.createdAt || 0));
   try {
-    const res = await fetch(PUBLISHED_CERTS_URL + "?t=" + Date.now(), { cache: "no-store" });
+    const res = await fetch(PUBLISHED_CERTS_URL, { cache: "no-cache" });
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data)) return data.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
@@ -328,7 +330,7 @@ export async function ensureCertAdminSeed() {
   const count = await tx(STORE_CERTS, "readonly", (os) => reqP(os.count()));
   if (count > 0 || localStorage.getItem("mkt_certs_seeded")) return;
   try {
-    const res = await fetch(PUBLISHED_CERTS_URL + "?t=" + Date.now(), { cache: "no-store" });
+    const res = await fetch(PUBLISHED_CERTS_URL, { cache: "no-cache" });
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length) {
@@ -380,7 +382,7 @@ export async function getPublishedReviews() {
   const b = await getBundle();
   if (b && Array.isArray(b.reviews)) return b.reviews.filter((r) => r && typeof r === "object").sort((a, c) => (c.createdAt || 0) - (a.createdAt || 0));
   try {
-    const res = await fetch(PUBLISHED_REVIEWS_URL + "?t=" + Date.now(), { cache: "no-store" });
+    const res = await fetch(PUBLISHED_REVIEWS_URL, { cache: "no-cache" });
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data)) return data.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
@@ -392,7 +394,7 @@ export async function ensureReviewAdminSeed() {
   const count = await tx(STORE_REVIEWS, "readonly", (os) => reqP(os.count()));
   if (count > 0 || localStorage.getItem("mkt_reviews_seeded")) return;
   try {
-    const res = await fetch(PUBLISHED_REVIEWS_URL + "?t=" + Date.now(), { cache: "no-store" });
+    const res = await fetch(PUBLISHED_REVIEWS_URL, { cache: "no-cache" });
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length) {
@@ -445,7 +447,7 @@ export async function getPublishedSettings() {
   const b = await getBundle();
   if (b && b.settings && typeof b.settings === "object" && !Array.isArray(b.settings)) return { ...DEFAULT_SETTINGS, ...b.settings };
   try {
-    const res = await fetch(PUBLISHED_SETTINGS_URL + "?t=" + Date.now(), { cache: "no-store" });
+    const res = await fetch(PUBLISHED_SETTINGS_URL, { cache: "no-cache" });
     if (res.ok) {
       const data = await res.json();
       if (data && typeof data === "object" && !Array.isArray(data)) return { ...DEFAULT_SETTINGS, ...data };
@@ -459,7 +461,7 @@ export async function ensureSettingsAdminSeed() {
   if (existing) return existing;
   let seed = null;
   try {
-    const res = await fetch(PUBLISHED_SETTINGS_URL + "?t=" + Date.now(), { cache: "no-store" });
+    const res = await fetch(PUBLISHED_SETTINGS_URL, { cache: "no-cache" });
     if (res.ok) {
       const data = await res.json();
       if (data && typeof data === "object" && !Array.isArray(data)) seed = data;
