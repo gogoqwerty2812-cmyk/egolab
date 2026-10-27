@@ -11,3 +11,6 @@ desktop.ini
 # Logs / temp
 *.log
 *.tmp
+
+# Local copies made by tools/shrink-content.py
+backups/
