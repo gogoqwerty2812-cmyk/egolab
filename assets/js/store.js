@@ -1,7 +1,7 @@
 // =============================================================================
 //  store.js — cart persistence (localStorage) + pub/sub
 // =============================================================================
-import { PROMO_CODES, SHIPPING } from "./config.js?v=8";
+import { PROMO_CODES, SHIPPING } from "./config.js?v=9";
 
 const KEY = "mkt_cart_v1";
 const PROMO_KEY = "mkt_promo_v1";

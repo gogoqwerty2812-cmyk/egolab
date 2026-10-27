@@ -1,7 +1,7 @@
 // =============================================================================
 //  db.js — IndexedDB storage layer (products + orders) with seed data
 // =============================================================================
-import { SITE } from "./config.js?v=8";
+import { SITE } from "./config.js?v=9";
 
 const DB_NAME = "marketplace_db";
 const DB_VERSION = 4;
@@ -142,7 +142,9 @@ function getBundle() {
       const res = await fetch(PUBLISHED_BUNDLE_URL + "?t=" + Date.now(), { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
-        if (data && typeof data === "object" && !Array.isArray(data)) return data;
+        // an old/odd content.json that is a bare array of products still works
+        if (Array.isArray(data)) return { products: data };
+        if (data && typeof data === "object") return data;
       }
     } catch {}
     return null;
@@ -150,21 +152,48 @@ function getBundle() {
   return _bundlePromise;
 }
 
+// Coerce a possibly-malformed product (from an old/hand-edited content.json)
+// into a safe shape so rendering never throws. Unknown extra fields are kept.
+function normProduct(p, i, now) {
+  if (!p || typeof p !== "object") p = {};
+  const images = Array.isArray(p.images) ? p.images.filter((s) => typeof s === "string" && s) : [];
+  return {
+    ...p,
+    id: (typeof p.id === "string" && p.id) ? p.id : "p" + i,
+    name: typeof p.name === "string" ? p.name : "",
+    description: typeof p.description === "string" ? p.description : "",
+    price: Number(p.price) || 0,
+    category: (typeof p.category === "string" && p.category) ? p.category : "Other",
+    subcategory: typeof p.subcategory === "string" ? p.subcategory : "",
+    images,
+    stock: Number.isFinite(+p.stock) ? +p.stock : 0,
+    featured: !!p.featured,
+    createdAt: Number(p.createdAt) || (now - i),
+  };
+}
+
 export async function getPublishedProducts() {
+  const now = Date.now();
+  let list = null;
   const b = await getBundle();
-  if (b && Array.isArray(b.products) && b.products.length) {
-    return b.products.slice().sort((a, b2) => (b2.createdAt || 0) - (a.createdAt || 0));
-  }
-  try {
-    const res = await fetch(PUBLISHED_URL + "?t=" + Date.now(), { cache: "no-store" });
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data) && data.length) {
-        return data.slice().sort((a, b3) => (b3.createdAt || 0) - (a.createdAt || 0));
+  if (b && Array.isArray(b.products) && b.products.length) list = b.products;
+  if (!list) {
+    try {
+      const res = await fetch(PUBLISHED_URL + "?t=" + Date.now(), { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length) list = data;
       }
-    }
-  } catch {}
-  // fallback if the file is missing: local seed
+    } catch {}
+  }
+  if (list) {
+    // drop non-object entries, normalize the rest → a bad/old file can't break rendering
+    return list
+      .filter((p) => p && typeof p === "object")
+      .map((p, i) => normProduct(p, i, now))
+      .sort((a, b2) => (b2.createdAt || 0) - (a.createdAt || 0));
+  }
+  // fallback if the file is missing/empty/invalid: local seed
   await ensureSeed();
   await upgradeSeedImages();
   return getProducts();
@@ -278,7 +307,7 @@ export async function deleteCert(id) {
 }
 export async function getPublishedCerts() {
   const b = await getBundle();
-  if (b && Array.isArray(b.certificates)) return b.certificates.slice().sort((a, c) => (c.createdAt || 0) - (a.createdAt || 0));
+  if (b && Array.isArray(b.certificates)) return b.certificates.filter((c) => c && typeof c === "object").sort((a, c) => (c.createdAt || 0) - (a.createdAt || 0));
   try {
     const res = await fetch(PUBLISHED_CERTS_URL + "?t=" + Date.now(), { cache: "no-store" });
     if (res.ok) {
@@ -342,7 +371,7 @@ export async function deleteReview(id) {
 }
 export async function getPublishedReviews() {
   const b = await getBundle();
-  if (b && Array.isArray(b.reviews)) return b.reviews.slice().sort((a, c) => (c.createdAt || 0) - (a.createdAt || 0));
+  if (b && Array.isArray(b.reviews)) return b.reviews.filter((r) => r && typeof r === "object").sort((a, c) => (c.createdAt || 0) - (a.createdAt || 0));
   try {
     const res = await fetch(PUBLISHED_REVIEWS_URL + "?t=" + Date.now(), { cache: "no-store" });
     if (res.ok) {
