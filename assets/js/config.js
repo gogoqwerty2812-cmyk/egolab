@@ -34,59 +34,32 @@ export const SITE = {
 
   // ---- Crypto payment options ----------------------------------------------
   // `address` is displayed to the buyer and encoded into the QR code.
-  // `uriScheme` builds a wallet-openable payment URI for the QR (optional).
+  // `icon` = coin logo, `chain` = small network badge on the logo (tokens only),
+  // both drawn in checkout.js. All addresses are checksum-verified (2026-10-28).
+  // EVM chains (ETH, BNB Smart Chain) share one address; so do TRX and USDT TRC-20.
   wallets: [
-    {
-      id: "BTC",
-      name: "Bitcoin",
-      symbol: "BTC",
-      network: "Bitcoin (BTC)",
-      address: "bc1qv4048360wxvcvj0mdv4twxgpm8zgkqxcplha0v",
-      uriScheme: "bitcoin",
-      accent: "#F7931A",
-    },
-    {
-      id: "ETH",
-      name: "Ethereum",
-      symbol: "ETH",
-      network: "Ethereum (ERC-20)",
-      address: "0xEcE0c95e9437C83279cc0E450F5823392c0C4D9a",
-      uriScheme: "ethereum",
-      accent: "#627EEA",
-    },
-    // TRC-20 (TRON) temporarily disabled — waiting for a valid TRON address
-    // (must start with "T"). Re-enable by filling in `address` and uncommenting.
-    // {
-    //   id: "USDT",
-    //   name: "Tether",
-    //   symbol: "USDT",
-    //   network: "TRC-20 · TRON",
-    //   address: "",
-    //   uriScheme: null, // plain-address QR
-    //   accent: "#26A17B",
-    // },
-    {
-      id: "USDTSOL",
-      name: "Tether",
-      symbol: "USDT",
-      network: "SPL · Solana",
-      address: "AUqXJj6mjA749qV8op8TH2oUcHkEy6mqojVf8npBDd1r",
-      uriScheme: null, // plain-address QR
-      accent: "#14F195",
-      badge: "Low fee",
-    },
-    {
-      id: "USDTBEP",
-      name: "Tether",
-      symbol: "USDT",
-      network: "BEP20 · BNB Smart Chain",
-      address: "0xEcE0c95e9437C83279cc0E450F5823392c0C4D9a",
-      uriScheme: null, // plain-address QR
-      accent: "#F0B90B",
-      // Note shown on the payment card. BEP20 fees are tiny but NOT zero — edit
-      // this text freely (e.g. "No fee" / "Без комиссии") if you prefer.
-      badge: "Low fee",
-    },
+    { id: "BTC", name: "Bitcoin", symbol: "BTC", network: "Bitcoin", icon: "btc",
+      address: "bc1qv4048360wxvcvj0mdv4twxgpm8zgkqxcplha0v" },
+    { id: "ETH", name: "Ethereum", symbol: "ETH", network: "Ethereum (ERC-20)", icon: "eth",
+      address: "0xEcE0c95e9437C83279cc0E450F5823392c0C4D9a" },
+    { id: "USDT", name: "Tether", symbol: "USDT", network: "TRC-20 · TRON", icon: "usdt", chain: "trx",
+      address: "TVMYmUJJuzsAHQYAAYsTaw2us531ixRp6k" },
+    { id: "USDTBEP", name: "Tether", symbol: "USDT", network: "BEP-20 · BNB Smart Chain", icon: "usdt", chain: "bnb",
+      address: "0xEcE0c95e9437C83279cc0E450F5823392c0C4D9a", badge: "Low fee" },
+    { id: "USDTSOL", name: "Tether", symbol: "USDT", network: "SPL · Solana", icon: "usdt", chain: "sol",
+      address: "AUqXJj6mjA749qV8op8TH2oUcHkEy6mqojVf8npBDd1r", badge: "Low fee" },
+    { id: "BNB", name: "BNB", symbol: "BNB", network: "BNB Smart Chain (BEP-20)", icon: "bnb",
+      address: "0xEcE0c95e9437C83279cc0E450F5823392c0C4D9a" },
+    { id: "SOL", name: "Solana", symbol: "SOL", network: "Solana", icon: "sol",
+      address: "AUqXJj6mjA749qV8op8TH2oUcHkEy6mqojVf8npBDd1r" },
+    { id: "TRX", name: "TRON", symbol: "TRX", network: "TRON (TRC-20)", icon: "trx",
+      address: "TVMYmUJJuzsAHQYAAYsTaw2us531ixRp6k" },
+    { id: "TON", name: "Toncoin", symbol: "TON", network: "TON", icon: "ton",
+      address: "UQDXUsVHLF3xKd61kR0m7Pt3ESnp0LeA6Nj3AH39B4NHz1JT" },
+    { id: "LTC", name: "Litecoin", symbol: "LTC", network: "Litecoin", icon: "ltc",
+      address: "ltc1qyqpwjx3ulrersx2d375ts7jg9ynefqck4puy98" },
+    { id: "DOGE", name: "Dogecoin", symbol: "DOGE", network: "Dogecoin", icon: "doge",
+      address: "D7Qu3FNJ3SkP7BFooNsJzUjgohxNJ1crBF" },
   ],
 
   // ---- Card payments (Visa / Mastercard / Apple Pay) via 1pay.cx ------------

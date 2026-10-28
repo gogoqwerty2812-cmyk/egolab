@@ -443,6 +443,11 @@ strong, b { font-weight: 600; }
 .coin:hover { border-color: var(--fg-subtle); }
 .coin.is-selected { border-color: var(--accent); background: var(--accent-weak); box-shadow: 0 0 0 1px var(--accent); }
 .coin.is-selected::after { content: "✓"; position: absolute; top: 9px; right: 11px; color: var(--accent-ink); font-weight: 700; font-size: .85rem; }
+.coin__head { display: flex; align-items: center; gap: 9px; margin-bottom: 3px; }
+.coin__logo { position: relative; width: 28px; height: 28px; flex: 0 0 auto; }
+.coin__svg { width: 28px; height: 28px; display: block; }
+.coin__chain { position: absolute; right: -4px; bottom: -3px; width: 14px; height: 14px; border-radius: 50%; box-shadow: 0 0 0 2px var(--surface); }
+.coin.is-selected .coin__chain { box-shadow: 0 0 0 2px var(--accent-weak); }
 .coin__sym { font-weight: 700; font-size: 1.02rem; }
 .coin__net { font-family: var(--font-mono); font-size: .66rem; color: var(--fg-subtle); letter-spacing: .02em; }
 .coin__badge { display: inline-block; align-self: flex-start; margin-top: 6px; padding: 2px 8px; border-radius: var(--r-pill); font-family: var(--font-mono); font-size: .58rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; background: var(--success-weak); color: var(--success); }
@@ -609,7 +614,7 @@ table.data tbody tr:hover td { background: var(--surface-2); }
   .nav-toggle { display: inline-grid; }
   .brand__name { font-size: 1.12rem; }
   .site-header__inner { gap: var(--space-3); }
-  .coin-grid { grid-template-columns: 1fr; }
+  .coin-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .cart-item { grid-template-columns: 72px 1fr; }
   .cart-item__ctrl { grid-column: 1 / -1; flex-direction: row !important; justify-content: space-between; }
   .pay-grid { grid-template-columns: 1fr; justify-items: center; text-align: center; }
@@ -1068,10 +1073,10 @@ img.thumb-xs { object-fit: contain; padding: 2px; }
 }
 
 /* ---------- Checkout: payment method tiles ---------- */
-.method-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); }
+.method-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-3); }
 .method {
-  position: relative; display: flex; align-items: center; gap: 12px; text-align: left;
-  padding: 14px; border: 1px solid var(--border-strong); border-radius: var(--r-input);
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; text-align: left;
+  padding: 16px 44px 16px 16px; border: 1px solid var(--border-strong); border-radius: var(--r-input);
   background: var(--surface); cursor: pointer; color: var(--fg);
   transition: border-color .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease), transform .14s var(--ease-spring);
 }
@@ -1084,7 +1089,7 @@ img.thumb-xs { object-fit: contain; padding: 2px; }
 .method__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
 .method__title { font-weight: 700; font-size: .95rem; line-height: 1.2; }
 .method__sub { font-family: var(--font-mono); font-size: .64rem; color: var(--fg-subtle); letter-spacing: .02em; line-height: 1.35; }
-.method__chev { flex: 0 0 auto; color: var(--fg-subtle); transition: transform .35s var(--ease-spring), color .2s var(--ease); }
+.method__chev { position: absolute; top: 50%; right: 14px; margin-top: -8px; color: var(--fg-subtle); transition: transform .35s var(--ease-spring), color .2s var(--ease); }
 .method.is-selected { border-color: var(--accent); background: var(--accent-weak); box-shadow: 0 0 0 1px var(--accent); }
 .method.is-selected .method__ic { background: var(--accent); color: #fff; }
 .method.is-selected .method__chev { transform: rotate(90deg); color: var(--accent-ink); }
@@ -1098,9 +1103,13 @@ img.thumb-xs { object-fit: contain; padding: 2px; }
 .method.nope { animation: methodNope .38s var(--ease); }
 @keyframes methodNope { 25% { transform: translateX(-4px); } 50% { transform: translateX(4px); } 75% { transform: translateX(-2px); } }
 /* real payment brand logos */
-.method__logos { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+.method__logos { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; min-height: 26px; }
 .paylogo { height: 26px; width: auto; display: block; }
-.paylogo--wide { height: 20px; }
+.cardlogo { height: 26px; width: 40px; display: block; border-radius: 4px; }
+.logo-stack { display: flex; }
+.logo-stack .paylogo { border-radius: 50%; box-shadow: 0 0 0 2px var(--surface); }
+.logo-stack .paylogo + .paylogo { margin-left: -7px; }
+.method.is-selected .logo-stack .paylogo { box-shadow: 0 0 0 2px var(--accent-weak); }
 .method:hover .method__logos { transform: none; }
 .method.is-soon .paylogo { filter: grayscale(.3); opacity: .9; }
 .crypto-area.is-in { animation: cryptoIn .45s var(--ease-out); }

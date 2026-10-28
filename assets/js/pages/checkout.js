@@ -1,9 +1,9 @@
-import { SITE, US_STATES, COUNTRIES } from "../config.js?v=11";
-import { Cart } from "../store.js?v=11";
-import { createOrder, updateOrder, deleteOrder } from "../db.js?v=11";
-import { icon, money, esc, initTheme, mountChrome, toast, copyText, pageHero } from "../ui.js?v=11";
-import { t } from "../i18n.js?v=11";
-import { sendOrderNotification } from "../notify.js?v=11";
+import { SITE, US_STATES, COUNTRIES } from "../config.js?v=12";
+import { Cart } from "../store.js?v=12";
+import { createOrder, updateOrder, deleteOrder } from "../db.js?v=12";
+import { icon, money, esc, initTheme, mountChrome, toast, copyText, pageHero } from "../ui.js?v=12";
+import { t } from "../i18n.js?v=12";
+import { sendOrderNotification } from "../notify.js?v=12";
 
 initTheme();
 
@@ -45,36 +45,53 @@ function summaryHTML() {
 function coinCards() {
   return SITE.wallets.map((w) => `
     <button type="button" class="coin" data-coin="${w.id}">
-      <span class="coin__sym" style="color:${w.accent}">${esc(w.symbol)}</span>
+      <span class="coin__head">${coinLogo(w)}<span class="coin__sym">${esc(w.symbol)}</span></span>
       <span>${esc(w.name)}</span>
       <span class="coin__net">${esc(w.network)}</span>
       ${w.badge ? `<span class="coin__badge">${esc(w.badge)}</span>` : ""}
     </button>`).join("");
 }
 
-// Real brand logos for the payment method picker (inline SVG, brand colours).
-const BRAND = {
-  btc: `<svg class="paylogo" viewBox="0 0 32 32" aria-label="Bitcoin"><circle cx="16" cy="16" r="16" fill="#F7931A"/><path fill="#fff" d="M22 14.1c.3-1.9-1.2-2.9-3.2-3.6l.6-2.6-1.6-.4-.6 2.5-1.3-.3.6-2.5-1.5-.4-.7 2.6-1-.3-2.1-.5-.4 1.7s1.1.2 1.1.3c.6.1.7.5.7.8l-1.7 6.9c-.1.2-.3.4-.6.3 0 0-1.1-.3-1.1-.3l-.8 1.8 2 .5 1.1.3-.7 2.6 1.5.4.7-2.6c.4.1.9.2 1.3.3l-.6 2.6 1.5.4.7-2.6c2.7.5 4.7.3 5.5-2.1.7-1.9 0-3-1.4-3.7 1-.2 1.7-.9 1.9-2.3zm-3.5 4.9c-.5 1.9-3.7.9-4.7.6l.9-3.5c1 .3 4.3.8 3.8 2.9zm.5-5c-.4 1.8-3.1.9-4 .6l.8-3.2c.9.2 3.7.6 3.2 2.6z"/></svg>`,
-  eth: `<svg class="paylogo" viewBox="0 0 32 32" aria-label="Ethereum"><circle cx="16" cy="16" r="16" fill="#627EEA"/><g fill="#fff"><path fill-opacity=".6" d="M16 4v8.9l7.5 3.4z"/><path d="M16 4 8.5 16.3 16 12.9z"/><path fill-opacity=".6" d="M16 21.9V28l7.5-10.4z"/><path d="M16 28v-6.1l-7.5-4.3z"/><path fill-opacity=".2" d="m16 20.6 7.5-4.3L16 12.9z"/><path fill-opacity=".6" d="M8.5 16.3 16 20.6v-7.7z"/></g></svg>`,
-  usdt: `<svg class="paylogo" viewBox="0 0 32 32" aria-label="Tether"><circle cx="16" cy="16" r="16" fill="#26A17B"/><path fill="#fff" d="M17.9 14v-2.3h5.3V8.2H8.9v3.5h5.3V14c-4.3.2-7.5 1-7.5 2.1s3.2 1.9 7.5 2.1v6.8h3.7v-6.8c4.3-.2 7.5-1 7.5-2.1s-3.2-1.9-7.5-2.1zm0 3.5c-.1 0-.7.1-1.9.1s-1.7 0-1.8-.1c-3.7-.1-6.5-.8-6.5-1.5s2.8-1.3 6.5-1.5v2.3c.1 0 .9.1 1.8.1 1.2 0 1.8-.1 1.9-.1v-2.3c3.7.2 6.4.8 6.4 1.5s-2.7 1.4-6.4 1.5z"/></svg>`,
-  visa: `<svg class="paylogo paylogo--wide" viewBox="0 0 48 16" aria-label="Visa"><text x="24" y="13" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="800" font-style="italic" fill="#1A1F71">VISA</text></svg>`,
-  mc: `<svg class="paylogo" viewBox="0 0 48 32" aria-label="Mastercard"><circle cx="19" cy="16" r="11" fill="#EB001B"/><circle cx="29" cy="16" r="11" fill="#F79E1B" fill-opacity=".9"/><path fill="#FF5F00" d="M24 7.6a11 11 0 0 0 0 16.8 11 11 0 0 0 0-16.8z"/></svg>`,
-  paypal: `<svg class="paylogo paylogo--wide" viewBox="0 0 74 20" aria-label="PayPal"><text x="0" y="16" font-family="Arial,Helvetica,sans-serif" font-size="17" font-weight="800" font-style="italic"><tspan fill="#003087">Pay</tspan><tspan fill="#009CDE">Pal</tspan></text></svg>`,
+// Coin / network logos (inline SVG, brand colours, 32×32 circles).
+const COIN = {
+  btc: `<circle cx="16" cy="16" r="16" fill="#F7931A"/><path fill="#fff" d="M22 14.1c.3-1.9-1.2-2.9-3.2-3.6l.6-2.6-1.6-.4-.6 2.5-1.3-.3.6-2.5-1.5-.4-.7 2.6-1-.3-2.1-.5-.4 1.7s1.1.2 1.1.3c.6.1.7.5.7.8l-1.7 6.9c-.1.2-.3.4-.6.3 0 0-1.1-.3-1.1-.3l-.8 1.8 2 .5 1.1.3-.7 2.6 1.5.4.7-2.6c.4.1.9.2 1.3.3l-.6 2.6 1.5.4.7-2.6c2.7.5 4.7.3 5.5-2.1.7-1.9 0-3-1.4-3.7 1-.2 1.7-.9 1.9-2.3zm-3.5 4.9c-.5 1.9-3.7.9-4.7.6l.9-3.5c1 .3 4.3.8 3.8 2.9zm.5-5c-.4 1.8-3.1.9-4 .6l.8-3.2c.9.2 3.7.6 3.2 2.6z"/>`,
+  eth: `<circle cx="16" cy="16" r="16" fill="#627EEA"/><g fill="#fff"><path fill-opacity=".6" d="M16 4v8.9l7.5 3.4z"/><path d="M16 4 8.5 16.3 16 12.9z"/><path fill-opacity=".6" d="M16 21.9V28l7.5-10.4z"/><path d="M16 28v-6.1l-7.5-4.3z"/><path fill-opacity=".2" d="m16 20.6 7.5-4.3L16 12.9z"/><path fill-opacity=".6" d="M8.5 16.3 16 20.6v-7.7z"/></g>`,
+  usdt: `<circle cx="16" cy="16" r="16" fill="#26A17B"/><path fill="#fff" d="M17.9 14v-2.3h5.3V8.2H8.9v3.5h5.3V14c-4.3.2-7.5 1-7.5 2.1s3.2 1.9 7.5 2.1v6.8h3.7v-6.8c4.3-.2 7.5-1 7.5-2.1s-3.2-1.9-7.5-2.1zm0 3.5c-.1 0-.7.1-1.9.1s-1.7 0-1.8-.1c-3.7-.1-6.5-.8-6.5-1.5s2.8-1.3 6.5-1.5v2.3c.1 0 .9.1 1.8.1 1.2 0 1.8-.1 1.9-.1v-2.3c3.7.2 6.4.8 6.4 1.5s-2.7 1.4-6.4 1.5z"/>`,
+  bnb: `<circle cx="16" cy="16" r="16" fill="#F3BA2F"/><g fill="#fff"><path d="M16 6.5l5.6 5.6-2 2L16 10.5l-3.6 3.6-2-2z"/><path d="M16 25.5l5.6-5.6-2-2L16 21.5l-3.6-3.6-2 2z"/><path d="M10.2 14l2 2-2 2-2-2z"/><path d="M21.8 14l2 2-2 2-2-2z"/><path d="M16 13.9l2.1 2.1-2.1 2.1-2.1-2.1z"/></g>`,
+  sol: `<circle cx="16" cy="16" r="16" fill="#121212"/><defs><linearGradient id="solg" x1="8" y1="24" x2="24" y2="8" gradientUnits="userSpaceOnUse"><stop stop-color="#9945FF"/><stop offset="1" stop-color="#14F195"/></linearGradient></defs><g fill="url(#solg)"><path d="M11.3 9h12.2l-2.8 2.9H8.5z"/><path d="M8.5 14.6h12.2l2.8 2.9H11.3z"/><path d="M11.3 20.1h12.2l-2.8 2.9H8.5z"/></g>`,
+  trx: `<circle cx="16" cy="16" r="16" fill="#EB0029"/><g fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"><path d="M8.6 9.3l15 3.4-9.2 11.6z"/><path d="M8.6 9.3l8.9 7.1 6.1-3.7M17.5 16.4l-3.1 7.9"/></g>`,
+  ton: `<circle cx="16" cy="16" r="16" fill="#0098EA"/><g fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M10.4 10.2h11.2c1 0 1.6 1.1 1.1 1.9l-5.9 10.1c-.4.7-1.4.7-1.8 0L9.3 12.1c-.5-.8.1-1.9 1.1-1.9z"/><path d="M16 10.2v12.6"/></g>`,
+  ltc: `<circle cx="16" cy="16" r="16" fill="#345D9D"/><path fill="#fff" d="M13.6 7.5h3.4l-2 7.4 2.5-1-.6 2.3-2.5 1-1.3 4.8h8l-.7 2.5H9.6l1.7-6.3-2 .8.6-2.3 2-.8z"/>`,
+  doge: `<circle cx="16" cy="16" r="16" fill="#C2A633"/><path fill="#fff" d="M11 8.5h5.6c4.6 0 7.4 2.9 7.4 7.5s-2.8 7.5-7.4 7.5H11v-6.1H9v-2.8h2zm3.3 3v3.3h3.4v2.8h-3.4v3.4h2.2c2.6 0 4.1-1.7 4.1-4.5s-1.5-5-4.1-5z"/>`,
+};
+const NET_NAME = { btc: "Bitcoin", eth: "Ethereum", usdt: "Tether", bnb: "BNB", sol: "Solana", trx: "TRON", ton: "TON", ltc: "Litecoin", doge: "Dogecoin" };
+// each SVG gets its own gradient id — a shared id breaks when the first copy is hidden
+let svgSeq = 0;
+const coinSvg = (key, cls = "paylogo") =>
+  `<svg class="${cls}" viewBox="0 0 32 32" role="img" aria-label="${NET_NAME[key] || key}">${(COIN[key] || "").replace(/solg/g, `solg${++svgSeq}`)}</svg>`;
+// coin logo with a small network badge for tokens (e.g. USDT on TRON)
+const coinLogo = (w) =>
+  `<span class="coin__logo">${coinSvg(w.icon, "coin__svg")}${w.chain ? coinSvg(w.chain, "coin__chain") : ""}</span>`;
+
+// Card brand badges, all on the same 40×26 card shape.
+const CARD = {
+  visa: `<svg class="cardlogo" viewBox="0 0 40 26" role="img" aria-label="Visa"><rect x=".5" y=".5" width="39" height="25" rx="4" fill="#fff" stroke="#D9D4CC"/><text x="20" y="17.4" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="11.5" font-weight="900" font-style="italic" letter-spacing=".3" fill="#1434CB">VISA</text></svg>`,
+  mc: `<svg class="cardlogo" viewBox="0 0 40 26" role="img" aria-label="Mastercard"><rect x=".5" y=".5" width="39" height="25" rx="4" fill="#fff" stroke="#D9D4CC"/><circle cx="16" cy="13" r="7" fill="#EB001B"/><circle cx="24" cy="13" r="7" fill="#F79E1B"/><path fill="#FF5F00" d="M20 7.25a7 7 0 0 1 0 11.5 7 7 0 0 1 0-11.5z"/></svg>`,
+  applepay: `<svg class="cardlogo" viewBox="0 0 40 26" role="img" aria-label="Apple Pay"><rect width="40" height="26" rx="4" fill="#000"/><path fill="#fff" transform="translate(5.6 6.4) scale(.54)" d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/><text x="25.4" y="17.2" text-anchor="middle" font-family="-apple-system,'Segoe UI',Arial,sans-serif" font-size="10" font-weight="600" fill="#fff">Pay</text></svg>`,
+  paypal: `<svg class="cardlogo" viewBox="0 0 40 26" role="img" aria-label="PayPal"><rect x=".5" y=".5" width="39" height="25" rx="4" fill="#fff" stroke="#D9D4CC"/><text x="20" y="16.6" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="9.4" font-weight="800" font-style="italic"><tspan fill="#003087">Pay</tspan><tspan fill="#009CDE">Pal</tspan></text></svg>`,
 };
 function payLogos(id) {
-  if (id === "crypto") return `${BRAND.btc}${BRAND.eth}${BRAND.usdt}`;
-  if (id === "card") return `${BRAND.visa}${BRAND.mc}`;
-  if (id === "paypal") return BRAND.paypal;
+  if (id === "crypto") return `<span class="logo-stack">${["btc", "eth", "usdt", "sol", "ton"].map((k) => coinSvg(k)).join("")}</span>`;
+  if (id === "card") return `${CARD.visa}${CARD.mc}${CARD.applepay}${CARD.paypal}`;
   return "";
 }
 
-// Payment methods. Crypto is live; card is live once the 1pay Worker is set up;
-// PayPal is shown as "coming soon".
+// Payment methods. Crypto is live; card is live once the 1pay Worker is set up.
 function methodCards() {
+  const symbols = [...new Set(SITE.wallets.map((w) => w.symbol))].join(" · ");
   const methods = [
-    { id: "crypto", icon: "bitcoin", title: t("pm_crypto"), sub: "BTC · ETH · USDT", live: true },
-    { id: "card", icon: "card", title: t("pm_card"), sub: "Visa · Mastercard · Apple Pay", live: cardLive() },
-    { id: "paypal", icon: "paypal", title: "PayPal", sub: t("pm_paypal_sub"), live: false },
+    { id: "crypto", title: t("pm_crypto"), sub: symbols, live: true },
+    { id: "card", title: t("pm_card"), sub: "Visa · Mastercard · Apple Pay · PayPal", live: cardLive() },
   ];
   return methods.map((m) => `
     <button type="button" class="method${m.live ? "" : " is-soon"}" data-method="${m.id}" role="radio" aria-checked="false"${m.live ? ` aria-controls="${m.id}Area" aria-expanded="false"` : ' aria-disabled="true"'}>
@@ -157,7 +174,8 @@ const rules = {
   txhash: (v) => {
     const val = v.trim();
     if (!val) return t("err_txhash");
-    return /^(0x)?[a-zA-Z0-9]{8,}$/.test(val) ? "" : t("err_txhash");
+    // hex / base58 / TON base64 hashes
+    return /^[A-Za-z0-9+/=_-]{8,}$/.test(val) ? "" : t("err_txhash");
   },
 };
 // state is required only when the country is the United States
