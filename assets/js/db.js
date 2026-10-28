@@ -1,7 +1,7 @@
 // =============================================================================
 //  db.js — IndexedDB storage layer (products + orders) with seed data
 // =============================================================================
-import { SITE } from "./config.js?v=13";
+import { SITE } from "./config.js?v=14";
 
 const DB_NAME = "marketplace_db";
 const DB_VERSION = 4;

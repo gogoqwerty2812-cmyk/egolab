@@ -1,9 +1,9 @@
-import { SITE, US_STATES, COUNTRIES } from "../config.js?v=13";
-import { Cart } from "../store.js?v=13";
-import { createOrder, updateOrder, deleteOrder } from "../db.js?v=13";
-import { icon, money, esc, initTheme, mountChrome, toast, copyText, pageHero } from "../ui.js?v=13";
-import { t } from "../i18n.js?v=13";
-import { sendOrderNotification } from "../notify.js?v=13";
+import { SITE, US_STATES, COUNTRIES } from "../config.js?v=14";
+import { Cart } from "../store.js?v=14";
+import { createOrder, updateOrder, deleteOrder } from "../db.js?v=14";
+import { icon, money, esc, initTheme, mountChrome, toast, copyText, pageHero } from "../ui.js?v=14";
+import { t } from "../i18n.js?v=14";
+import { sendOrderNotification } from "../notify.js?v=14";
 
 initTheme();
 
@@ -168,7 +168,7 @@ const rules = {
   state: (v) => (v ? "" : t("err_state")),
   phone: (v) => {
     const digits = v.replace(/\D/g, "");
-    if (!v.trim()) return t("err_phone");
+    if (!v.trim()) return ""; // optional — but at least one contact is required (see submit)
     return digits.length >= 7 && digits.length <= 15 ? "" : t("err_phone");
   },
   txhash: (v) => {
@@ -179,7 +179,7 @@ const rules = {
   },
 };
 // state is required only when the country is the United States
-const REQUIRED = ["country", "city", "address", "phone", "txhash"];
+const REQUIRED = ["country", "city", "address", "txhash"];
 
 function setError(name, msg) {
   const field = document.querySelector(`[data-field="${name}"]`);
@@ -245,14 +245,15 @@ function init() {
                 <div class="error-text"></div>
               </div>
               <div class="field" data-field="phone">
-                <label class="label" for="phone">${t("phone")} <span class="req">*</span></label>
+                <label class="label" for="phone">${t("phone")}</label>
                 <input class="input" id="phone" name="phone" type="tel" placeholder="+1 (555) 000-0000">
                 <div class="error-text"></div>
               </div>
-              <div>
-                <div class="label" style="margin-bottom:2px">${t("contact_more_title")}</div>
-                <div class="hint" style="margin-top:0;margin-bottom:12px">${t("contact_more_hint")}</div>
+              <div class="field" data-field="contact" style="gap:0">
+                <div class="label" style="margin-bottom:2px">${t("contact_more_title")} <span class="req">*</span></div>
+                <div class="hint" style="margin-top:0;margin-bottom:12px">${t("contact_any_hint")}</div>
                 <div class="contacts-grid">${contactFields()}</div>
+                <div class="error-text"></div>
               </div>
             </div>
           </section>
@@ -366,6 +367,14 @@ function init() {
     });
   });
 
+  ["phone", ...SITE.checkoutContacts.map((c) => c.id)].forEach((id) => {
+    document.getElementById(id)?.addEventListener("input", (e) => {
+      if (!e.target.value.trim()) return;
+      setError("contact", "");
+      if (id !== "phone") validateField("phone", document.getElementById("phone").value);
+    });
+  });
+
   // submit
   document.getElementById("checkoutForm").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -376,6 +385,11 @@ function init() {
     if (isCard) required = required.filter((n) => n !== "txhash");
     let ok = true;
     required.forEach((n) => { if (!validateField(n, f[n].value)) ok = false; });
+    if (!validateField("phone", f.phone.value)) ok = false;
+    // phone is optional, but we need at least one way to reach the buyer
+    const hasContact = !!f.phone.value.trim() || SITE.checkoutContacts.some((c) => f[c.id]?.value.trim());
+    setError("contact", hasContact ? "" : t("err_contact"));
+    if (!hasContact) { document.querySelector('[data-field="phone"]').classList.add("field--invalid"); ok = false; }
     if (!isCard && !selectedCoin) { openCrypto(); setError("coin", t("err_coin")); ok = false; }
     if (!ok) {
       toast(t("err_fix"), "err");

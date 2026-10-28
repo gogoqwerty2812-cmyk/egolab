@@ -3,7 +3,7 @@
 //  Works on static hosting (GitHub Pages) because it POSTs straight to the
 //  Telegram Bot API from the browser. No-op if not configured in config.js.
 // =============================================================================
-import { SITE } from "./config.js?v=13";
+import { SITE } from "./config.js?v=14";
 
 // Reassemble the bot token that config.js stores encoded + split, so the raw
 // `<digits>:AA...` string never appears in the repo for scrapers to grab.
