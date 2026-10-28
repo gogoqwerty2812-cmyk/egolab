@@ -1,9 +1,9 @@
-import { SITE, US_STATES, COUNTRIES } from "../config.js?v=12";
-import { Cart } from "../store.js?v=12";
-import { createOrder, updateOrder, deleteOrder } from "../db.js?v=12";
-import { icon, money, esc, initTheme, mountChrome, toast, copyText, pageHero } from "../ui.js?v=12";
-import { t } from "../i18n.js?v=12";
-import { sendOrderNotification } from "../notify.js?v=12";
+import { SITE, US_STATES, COUNTRIES } from "../config.js?v=13";
+import { Cart } from "../store.js?v=13";
+import { createOrder, updateOrder, deleteOrder } from "../db.js?v=13";
+import { icon, money, esc, initTheme, mountChrome, toast, copyText, pageHero } from "../ui.js?v=13";
+import { t } from "../i18n.js?v=13";
+import { sendOrderNotification } from "../notify.js?v=13";
 
 initTheme();
 
@@ -48,7 +48,7 @@ function coinCards() {
       <span class="coin__head">${coinLogo(w)}<span class="coin__sym">${esc(w.symbol)}</span></span>
       <span>${esc(w.name)}</span>
       <span class="coin__net">${esc(w.network)}</span>
-      ${w.badge ? `<span class="coin__badge">${esc(w.badge)}</span>` : ""}
+      ${w.lowFee ? `<span class="coin__badge">⚡ ${esc(t("low_fee"))}</span>` : ""}
     </button>`).join("");
 }
 
@@ -262,7 +262,8 @@ function init() {
             <p class="hint" style="margin-bottom:var(--space-4)">${t("pay_choose")}</p>
             <div class="method-grid" id="methodGrid" role="radiogroup" aria-label="${t("step_payment")}">${methodCards()}</div>
             <div class="crypto-area" id="cryptoArea" hidden>
-              <p class="hint" style="margin:var(--space-5) 0 var(--space-4)">${t("payment_crypto")}</p>
+              <p class="hint" style="margin:var(--space-5) 0 var(--space-2)">${t("payment_crypto")}</p>
+              <p class="fee-legend"><span class="coin__badge">⚡ ${t("low_fee")}</span> ${t("low_fee_hint")}</p>
               <div class="coin-grid" id="coinGrid">${coinCards()}</div>
               <div class="pay-box" id="payBox"></div>
             </div>

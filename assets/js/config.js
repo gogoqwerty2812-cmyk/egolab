@@ -35,6 +35,7 @@ export const SITE = {
   // ---- Crypto payment options ----------------------------------------------
   // `address` is displayed to the buyer and encoded into the QR code.
   // `icon` = coin logo, `chain` = small network badge on the logo (tokens only),
+  // `lowFee` = network fee is cents — shown as a green ⚡ badge at checkout;
   // both drawn in checkout.js. All addresses are checksum-verified (2026-10-28).
   // EVM chains (ETH, BNB Smart Chain) share one address; so do TRX and USDT TRC-20.
   wallets: [
@@ -45,21 +46,21 @@ export const SITE = {
     { id: "USDT", name: "Tether", symbol: "USDT", network: "TRC-20 · TRON", icon: "usdt", chain: "trx",
       address: "TVMYmUJJuzsAHQYAAYsTaw2us531ixRp6k" },
     { id: "USDTBEP", name: "Tether", symbol: "USDT", network: "BEP-20 · BNB Smart Chain", icon: "usdt", chain: "bnb",
-      address: "0xEcE0c95e9437C83279cc0E450F5823392c0C4D9a", badge: "Low fee" },
+      address: "0xEcE0c95e9437C83279cc0E450F5823392c0C4D9a", lowFee: true },
     { id: "USDTSOL", name: "Tether", symbol: "USDT", network: "SPL · Solana", icon: "usdt", chain: "sol",
-      address: "AUqXJj6mjA749qV8op8TH2oUcHkEy6mqojVf8npBDd1r", badge: "Low fee" },
+      address: "AUqXJj6mjA749qV8op8TH2oUcHkEy6mqojVf8npBDd1r", lowFee: true },
     { id: "BNB", name: "BNB", symbol: "BNB", network: "BNB Smart Chain (BEP-20)", icon: "bnb",
-      address: "0xEcE0c95e9437C83279cc0E450F5823392c0C4D9a" },
+      address: "0xEcE0c95e9437C83279cc0E450F5823392c0C4D9a", lowFee: true },
     { id: "SOL", name: "Solana", symbol: "SOL", network: "Solana", icon: "sol",
-      address: "AUqXJj6mjA749qV8op8TH2oUcHkEy6mqojVf8npBDd1r" },
+      address: "AUqXJj6mjA749qV8op8TH2oUcHkEy6mqojVf8npBDd1r", lowFee: true },
     { id: "TRX", name: "TRON", symbol: "TRX", network: "TRON (TRC-20)", icon: "trx",
-      address: "TVMYmUJJuzsAHQYAAYsTaw2us531ixRp6k" },
+      address: "TVMYmUJJuzsAHQYAAYsTaw2us531ixRp6k", lowFee: true },
     { id: "TON", name: "Toncoin", symbol: "TON", network: "TON", icon: "ton",
-      address: "UQDXUsVHLF3xKd61kR0m7Pt3ESnp0LeA6Nj3AH39B4NHz1JT" },
+      address: "UQDXUsVHLF3xKd61kR0m7Pt3ESnp0LeA6Nj3AH39B4NHz1JT", lowFee: true },
     { id: "LTC", name: "Litecoin", symbol: "LTC", network: "Litecoin", icon: "ltc",
-      address: "ltc1qyqpwjx3ulrersx2d375ts7jg9ynefqck4puy98" },
+      address: "ltc1qyqpwjx3ulrersx2d375ts7jg9ynefqck4puy98", lowFee: true },
     { id: "DOGE", name: "Dogecoin", symbol: "DOGE", network: "Dogecoin", icon: "doge",
-      address: "D7Qu3FNJ3SkP7BFooNsJzUjgohxNJ1crBF" },
+      address: "D7Qu3FNJ3SkP7BFooNsJzUjgohxNJ1crBF", lowFee: true },
   ],
 
   // ---- Card payments (Visa / Mastercard / Apple Pay) via 1pay.cx ------------
