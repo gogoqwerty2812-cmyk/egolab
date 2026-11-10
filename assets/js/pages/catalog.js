@@ -1,8 +1,8 @@
-import { SITE } from "../config.js?v=17";
-import { getPublishedProducts, getPublishedSettings, getPublishedReviews } from "../db.js?v=17";
-import { Cart } from "../store.js?v=17";
-import { icon, money, esc, placeholder, initTheme, mountChrome, revealOnScroll, toast, skeletonCards, flyToCart, catColor, sampleCornerColor, cutoutImage } from "../ui.js?v=17";
-import { t, getLang } from "../i18n.js?v=17";
+import { SITE } from "../config.js?v=20";
+import { getPublishedProducts, getPublishedSettings, getPublishedReviews } from "../db.js?v=20";
+import { Cart } from "../store.js?v=20";
+import { icon, money, esc, placeholder, initTheme, mountChrome, revealOnScroll, toast, skeletonCards, flyToCart, catColor, sampleCornerColor, cutoutImage } from "../ui.js?v=20";
+import { t, getLang } from "../i18n.js?v=20";
 
 initTheme();
 

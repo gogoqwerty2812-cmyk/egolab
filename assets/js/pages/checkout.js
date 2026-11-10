@@ -1,9 +1,9 @@
-import { SITE, US_STATES, COUNTRIES } from "../config.js?v=17";
-import { Cart } from "../store.js?v=17";
-import { createOrder, updateOrder, deleteOrder } from "../db.js?v=17";
-import { icon, money, esc, initTheme, mountChrome, toast, copyText, pageHero } from "../ui.js?v=17";
-import { t } from "../i18n.js?v=17";
-import { sendOrderNotification } from "../notify.js?v=17";
+import { SITE, US_STATES, COUNTRIES } from "../config.js?v=20";
+import { Cart } from "../store.js?v=20";
+import { createOrder, updateOrder, deleteOrder } from "../db.js?v=20";
+import { icon, money, esc, initTheme, mountChrome, toast, copyText, pageHero } from "../ui.js?v=20";
+import { t } from "../i18n.js?v=20";
+import { sendOrderNotification } from "../notify.js?v=20";
 
 initTheme();
 
@@ -55,9 +55,8 @@ function summaryHTML() {
     </aside>`;
 }
 
-// green "Low fee" pill with a filled lightning bolt
-const feeBadge = () =>
-  `<span class="coin__badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 4.5 13.5h6.2L9.8 22l9.7-12.2h-6.3z"/></svg>${esc(t("low_fee"))}</span>`;
+// quiet "Low fee" label: a small green dot + text, no pill
+const feeBadge = () => `<span class="coin__badge">${esc(t("low_fee"))}</span>`;
 
 function coinCards() {
   return SITE.wallets.map((w) => `
@@ -99,7 +98,8 @@ const CARD = {
   paypal: `<svg class="cardlogo" viewBox="0 0 40 26" role="img" aria-label="PayPal"><rect x=".5" y=".5" width="39" height="25" rx="4" fill="#fff" stroke="#D9D4CC"/><text x="20" y="16.6" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="9.4" font-weight="800" font-style="italic"><tspan fill="#003087">Pay</tspan><tspan fill="#009CDE">Pal</tspan></text></svg>`,
 };
 function payLogos(id) {
-  if (id === "crypto") return `<span class="logo-stack">${["btc", "eth", "usdt", "sol", "ton"].map((k) => coinSvg(k)).join("")}</span>`;
+  // every coin we accept, once each, in the order of the wallet list
+  if (id === "crypto") return `<span class="logo-stack">${[...new Set(SITE.wallets.map((w) => w.icon))].map((k) => coinSvg(k)).join("")}</span>`;
   if (id === "card") return `${CARD.visa}${CARD.mc}${CARD.applepay}${CARD.paypal}`;
   return "";
 }
