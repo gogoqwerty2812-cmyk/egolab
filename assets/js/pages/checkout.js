@@ -1,9 +1,9 @@
-import { SITE, US_STATES, COUNTRIES } from "../config.js?v=20";
-import { Cart } from "../store.js?v=20";
-import { createOrder, updateOrder, deleteOrder } from "../db.js?v=20";
-import { icon, money, esc, initTheme, mountChrome, toast, copyText, pageHero } from "../ui.js?v=20";
-import { t } from "../i18n.js?v=20";
-import { sendOrderNotification } from "../notify.js?v=20";
+import { SITE, US_STATES, COUNTRIES } from "../config.js?v=21";
+import { Cart } from "../store.js?v=21";
+import { createOrder, updateOrder, deleteOrder } from "../db.js?v=21";
+import { icon, money, esc, initTheme, mountChrome, toast, copyText, pageHero } from "../ui.js?v=21";
+import { t } from "../i18n.js?v=21";
+import { sendOrderNotification } from "../notify.js?v=21";
 
 initTheme();
 
@@ -94,13 +94,15 @@ const coinLogo = (w) =>
 const CARD = {
   visa: `<svg class="cardlogo" viewBox="0 0 40 26" role="img" aria-label="Visa"><rect x=".5" y=".5" width="39" height="25" rx="4" fill="#fff" stroke="#D9D4CC"/><text x="20" y="17.4" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="11.5" font-weight="900" font-style="italic" letter-spacing=".3" fill="#1434CB">VISA</text></svg>`,
   mc: `<svg class="cardlogo" viewBox="0 0 40 26" role="img" aria-label="Mastercard"><rect x=".5" y=".5" width="39" height="25" rx="4" fill="#fff" stroke="#D9D4CC"/><circle cx="16" cy="13" r="7" fill="#EB001B"/><circle cx="24" cy="13" r="7" fill="#F79E1B"/><path fill="#FF5F00" d="M20 7.25a7 7 0 0 1 0 11.5 7 7 0 0 1 0-11.5z"/></svg>`,
+  amex: `<svg class="cardlogo" viewBox="0 0 40 26" role="img" aria-label="American Express"><rect width="40" height="26" rx="4" fill="#006FCF"/><text x="20" y="16.8" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="9.6" font-weight="900" letter-spacing=".6" fill="#fff">AMEX</text></svg>`,
+  gpay: `<svg class="cardlogo" viewBox="0 0 40 26" role="img" aria-label="Google Pay"><rect x=".5" y=".5" width="39" height="25" rx="4" fill="#fff" stroke="#D9D4CC"/><g fill="none" stroke-width="2.1"><path stroke="#EA4335" d="M7.9 10A4.3 4.3 0 0 1 14 9.9"/><path stroke="#FBBC04" d="M7.9 10A4.3 4.3 0 0 0 7.6 15.6"/><path stroke="#34A853" d="M7.6 15.6A4.3 4.3 0 0 0 14.2 15.9"/><path stroke="#4285F4" d="M14.2 15.9A4.3 4.3 0 0 0 15.3 13H11.2"/></g><text x="27.4" y="16.7" text-anchor="middle" font-family="'Segoe UI',Arial,sans-serif" font-size="9.6" font-weight="600" fill="#5F6368">Pay</text></svg>`,
   applepay: `<svg class="cardlogo" viewBox="0 0 40 26" role="img" aria-label="Apple Pay"><rect width="40" height="26" rx="4" fill="#000"/><path fill="#fff" transform="translate(5.6 6.4) scale(.54)" d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/><text x="25.4" y="17.2" text-anchor="middle" font-family="-apple-system,'Segoe UI',Arial,sans-serif" font-size="10" font-weight="600" fill="#fff">Pay</text></svg>`,
   paypal: `<svg class="cardlogo" viewBox="0 0 40 26" role="img" aria-label="PayPal"><rect x=".5" y=".5" width="39" height="25" rx="4" fill="#fff" stroke="#D9D4CC"/><text x="20" y="16.6" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="9.4" font-weight="800" font-style="italic"><tspan fill="#003087">Pay</tspan><tspan fill="#009CDE">Pal</tspan></text></svg>`,
 };
 function payLogos(id) {
   // every coin we accept, once each, in the order of the wallet list
   if (id === "crypto") return `<span class="logo-stack">${[...new Set(SITE.wallets.map((w) => w.icon))].map((k) => coinSvg(k)).join("")}</span>`;
-  if (id === "card") return `${CARD.visa}${CARD.mc}${CARD.applepay}${CARD.paypal}`;
+  if (id === "card") return ["visa", "mc", "amex", "applepay", "gpay", "paypal"].map((k) => CARD[k]).join("");
   return "";
 }
 
@@ -109,7 +111,7 @@ function methodCards() {
   const symbols = [...new Set(SITE.wallets.map((w) => w.symbol))].join(" · ");
   const methods = [
     { id: "crypto", title: t("pm_crypto"), sub: symbols, live: true },
-    { id: "card", title: t("pm_card"), sub: "Visa · Mastercard · Apple Pay · PayPal", live: cardLive() },
+    { id: "card", title: t("pm_card"), sub: "Visa · Mastercard · Amex · Apple Pay · Google Pay · PayPal", live: cardLive() },
   ];
   return methods.map((m) => `
     <button type="button" class="method${m.live ? "" : " is-soon"}" data-method="${m.id}" role="radio" aria-checked="false"${m.live ? ` aria-controls="${m.id}Area" aria-expanded="false"` : ' aria-disabled="true"'}>
