@@ -1,9 +1,9 @@
-import { SITE, US_STATES, COUNTRIES } from "../config.js?v=14";
-import { Cart } from "../store.js?v=14";
-import { createOrder, updateOrder, deleteOrder } from "../db.js?v=14";
-import { icon, money, esc, initTheme, mountChrome, toast, copyText, pageHero } from "../ui.js?v=14";
-import { t } from "../i18n.js?v=14";
-import { sendOrderNotification } from "../notify.js?v=14";
+import { SITE, US_STATES, COUNTRIES } from "../config.js?v=15";
+import { Cart } from "../store.js?v=15";
+import { createOrder, updateOrder, deleteOrder } from "../db.js?v=15";
+import { icon, money, esc, initTheme, mountChrome, toast, copyText, pageHero } from "../ui.js?v=15";
+import { t } from "../i18n.js?v=15";
+import { sendOrderNotification } from "../notify.js?v=15";
 
 initTheme();
 
@@ -61,10 +61,11 @@ const COIN = {
   sol: `<circle cx="16" cy="16" r="16" fill="#121212"/><defs><linearGradient id="solg" x1="8" y1="24" x2="24" y2="8" gradientUnits="userSpaceOnUse"><stop stop-color="#9945FF"/><stop offset="1" stop-color="#14F195"/></linearGradient></defs><g fill="url(#solg)"><path d="M11.3 9h12.2l-2.8 2.9H8.5z"/><path d="M8.5 14.6h12.2l2.8 2.9H11.3z"/><path d="M11.3 20.1h12.2l-2.8 2.9H8.5z"/></g>`,
   trx: `<circle cx="16" cy="16" r="16" fill="#EB0029"/><g fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"><path d="M8.6 9.3l15 3.4-9.2 11.6z"/><path d="M8.6 9.3l8.9 7.1 6.1-3.7M17.5 16.4l-3.1 7.9"/></g>`,
   ton: `<circle cx="16" cy="16" r="16" fill="#0098EA"/><g fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M10.4 10.2h11.2c1 0 1.6 1.1 1.1 1.9l-5.9 10.1c-.4.7-1.4.7-1.8 0L9.3 12.1c-.5-.8.1-1.9 1.1-1.9z"/><path d="M16 10.2v12.6"/></g>`,
+  xmr: `<circle cx="16" cy="16" r="16" fill="#FF6600"/><path fill="none" stroke="#fff" stroke-width="3.6" stroke-linejoin="miter" d="M7.3 22V11.2l8.7 8.7 8.7-8.7V22"/><path fill="#4C4C4C" d="M1.06 21.6a16 16 0 0 0 29.88 0z"/>`,
   ltc: `<circle cx="16" cy="16" r="16" fill="#345D9D"/><path fill="#fff" d="M13.6 7.5h3.4l-2 7.4 2.5-1-.6 2.3-2.5 1-1.3 4.8h8l-.7 2.5H9.6l1.7-6.3-2 .8.6-2.3 2-.8z"/>`,
   doge: `<circle cx="16" cy="16" r="16" fill="#C2A633"/><path fill="#fff" d="M11 8.5h5.6c4.6 0 7.4 2.9 7.4 7.5s-2.8 7.5-7.4 7.5H11v-6.1H9v-2.8h2zm3.3 3v3.3h3.4v2.8h-3.4v3.4h2.2c2.6 0 4.1-1.7 4.1-4.5s-1.5-5-4.1-5z"/>`,
 };
-const NET_NAME = { btc: "Bitcoin", eth: "Ethereum", usdt: "Tether", bnb: "BNB", sol: "Solana", trx: "TRON", ton: "TON", ltc: "Litecoin", doge: "Dogecoin" };
+const NET_NAME = { btc: "Bitcoin", eth: "Ethereum", usdt: "Tether", bnb: "BNB", sol: "Solana", trx: "TRON", ton: "TON", xmr: "Monero", ltc: "Litecoin", doge: "Dogecoin" };
 // each SVG gets its own gradient id — a shared id breaks when the first copy is hidden
 let svgSeq = 0;
 const coinSvg = (key, cls = "paylogo") =>

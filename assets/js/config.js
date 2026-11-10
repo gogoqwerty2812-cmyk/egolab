@@ -57,6 +57,8 @@ export const SITE = {
       address: "TVMYmUJJuzsAHQYAAYsTaw2us531ixRp6k", lowFee: true },
     { id: "TON", name: "Toncoin", symbol: "TON", network: "TON", icon: "ton",
       address: "UQDXUsVHLF3xKd61kR0m7Pt3ESnp0LeA6Nj3AH39B4NHz1JT", lowFee: true },
+    { id: "XMR", name: "Monero", symbol: "XMR", network: "Monero", icon: "xmr",
+      address: "47RvZSmteNLWwS73MGcyt8QMGqNMqQAPyd8F4QRish7fKQYfoPc9BW7VVSpD3JoD9BGseZNPBGsXFAvLEBkJkrRCQAtM7t4", lowFee: true },
     { id: "LTC", name: "Litecoin", symbol: "LTC", network: "Litecoin", icon: "ltc",
       address: "ltc1qyqpwjx3ulrersx2d375ts7jg9ynefqck4puy98", lowFee: true },
     { id: "DOGE", name: "Dogecoin", symbol: "DOGE", network: "Dogecoin", icon: "doge",
