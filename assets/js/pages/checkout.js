@@ -1,9 +1,9 @@
-import { SITE, US_STATES, COUNTRIES } from "../config.js?v=15";
-import { Cart } from "../store.js?v=15";
-import { createOrder, updateOrder, deleteOrder } from "../db.js?v=15";
-import { icon, money, esc, initTheme, mountChrome, toast, copyText, pageHero } from "../ui.js?v=15";
-import { t } from "../i18n.js?v=15";
-import { sendOrderNotification } from "../notify.js?v=15";
+import { SITE, US_STATES, COUNTRIES } from "../config.js?v=16";
+import { Cart } from "../store.js?v=16";
+import { createOrder, updateOrder, deleteOrder } from "../db.js?v=16";
+import { icon, money, esc, initTheme, mountChrome, toast, copyText, pageHero } from "../ui.js?v=16";
+import { t } from "../i18n.js?v=16";
+import { sendOrderNotification } from "../notify.js?v=16";
 
 initTheme();
 
@@ -15,6 +15,19 @@ const shippingFee = Cart.shipping();
 const total = Cart.total();
 let selectedCoin = null;
 let selectedMethod = null; // "crypto" | "card"
+
+// No TX hash for cards (1pay confirms) or for private coins like Monero, whose
+// hash proves nothing to an outsider — the seller checks their own wallet.
+const noTxHash = () => selectedMethod === "card" || (selectedMethod === "crypto" && !!selectedCoin?.noTxHash);
+
+function updateHashUI() {
+  const isCard = selectedMethod === "card";
+  const hide = noTxHash();
+  document.getElementById("txField").hidden = hide;
+  if (hide) setError("txhash", "");
+  document.getElementById("payExact").textContent =
+    isCard ? t("card_pay_exact") : hide ? t("nohash_pay_exact") : t("pay_exact");
+}
 
 // Card payments go live once the 1pay Worker URL is set in config.js.
 const cardLive = () => !!(SITE.cardPayment?.enabled && SITE.cardPayment?.workerUrl);
@@ -124,7 +137,7 @@ function renderPayBox(w) {
             <button type="button" class="icon-btn" id="copyAddr" style="width:34px;height:34px;flex:0 0 auto" aria-label="${t("addr_copy")}">${icon("copy", 16)}</button>
           </div>
         </div>
-        <p class="hint">${t("scan_hint")}</p>
+        <p class="hint">${w.noTxHash ? t("nohash_scan_hint") : t("scan_hint")}</p>
       </div>
     </div>`;
 
@@ -315,12 +328,10 @@ function init() {
     });
     // a card buyer has no TX hash — 1pay confirms the payment for us
     const isCard = id === "card";
-    document.getElementById("txField").hidden = isCard;
-    if (isCard) setError("txhash", "");
+    updateHashUI();
     setError("coin", "");
     document.getElementById("submitLabel").textContent = isCard ? t("pay_by_card") : t("place_order");
     document.getElementById("pendingNote").textContent = isCard ? t("card_pending_note") : t("pending_note");
-    document.getElementById("payExact").textContent = isCard ? t("card_pay_exact") : t("pay_exact");
   };
   const openCrypto = () => selectMethod("crypto");
   methodGrid.addEventListener("click", (e) => {
@@ -345,6 +356,7 @@ function init() {
     document.getElementById("coinInput").value = selectedCoin.id;
     setError("coin", "");
     renderPayBox(selectedCoin);
+    updateHashUI();
   });
 
   // show the US state dropdown only for the United States
@@ -383,7 +395,7 @@ function init() {
     const isUS = f.country.value === "US";
     const isCard = selectedMethod === "card";
     let required = isUS ? [...REQUIRED, "state"] : REQUIRED;
-    if (isCard) required = required.filter((n) => n !== "txhash");
+    if (noTxHash()) required = required.filter((n) => n !== "txhash");
     let ok = true;
     required.forEach((n) => { if (!validateField(n, f[n].value)) ok = false; });
     if (!validateField("phone", f.phone.value)) ok = false;
@@ -437,7 +449,7 @@ function init() {
           coinName: selectedCoin.name,
           network: selectedCoin.network,
           walletAddress: selectedCoin.address,
-          txHash: f.txhash.value.trim(),
+          txHash: selectedCoin.noTxHash ? "" : f.txhash.value.trim(),
         },
     });
 
