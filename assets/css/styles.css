@@ -451,8 +451,11 @@ strong, b { font-weight: 600; }
 .coin__sym { font-weight: 700; font-size: 1.02rem; }
 .coin__net { font-family: var(--font-mono); font-size: .66rem; color: var(--fg-subtle); letter-spacing: .02em; }
 .fee-legend { margin: 0 0 var(--space-4); font-size: .82rem; line-height: 1.6; color: var(--fg-muted); }
-.fee-legend .coin__badge { margin: 0 6px 0 0; vertical-align: 1px; }
-.coin__badge { display: inline-block; align-self: flex-start; margin-top: 6px; padding: 2px 8px; border-radius: var(--r-pill); font-family: var(--font-mono); font-size: .58rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; background: var(--success-weak); color: var(--success); }
+.fee-legend .coin__badge { margin: 0 6px 0 0; vertical-align: -2px; }
+.coin__badge { display: inline-flex; align-items: center; gap: 4px; align-self: flex-start; margin-top: 7px; padding: 3px 9px 3px 6px;
+  border-radius: var(--r-pill); border: 1px solid rgba(78,140,99,.28); background: var(--success-weak); color: var(--success);
+  font-family: var(--font-body); font-size: .7rem; font-weight: 600; line-height: 1.2; letter-spacing: 0; white-space: nowrap; }
+.coin__badge svg { width: 11px; height: 11px; flex: 0 0 auto; fill: currentColor; }
 .pay-box { margin-top: var(--space-5); border-top: 1px dashed var(--border-strong); padding-top: var(--space-5); display: none; }
 .pay-box.is-open { display: block; animation: fade .3s var(--ease); }
 .pay-grid { display: grid; grid-template-columns: auto 1fr; gap: var(--space-5); align-items: center; }

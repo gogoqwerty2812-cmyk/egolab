@@ -1,9 +1,9 @@
-import { SITE, US_STATES, COUNTRIES } from "../config.js?v=16";
-import { Cart } from "../store.js?v=16";
-import { createOrder, updateOrder, deleteOrder } from "../db.js?v=16";
-import { icon, money, esc, initTheme, mountChrome, toast, copyText, pageHero } from "../ui.js?v=16";
-import { t } from "../i18n.js?v=16";
-import { sendOrderNotification } from "../notify.js?v=16";
+import { SITE, US_STATES, COUNTRIES } from "../config.js?v=17";
+import { Cart } from "../store.js?v=17";
+import { createOrder, updateOrder, deleteOrder } from "../db.js?v=17";
+import { icon, money, esc, initTheme, mountChrome, toast, copyText, pageHero } from "../ui.js?v=17";
+import { t } from "../i18n.js?v=17";
+import { sendOrderNotification } from "../notify.js?v=17";
 
 initTheme();
 
@@ -55,13 +55,17 @@ function summaryHTML() {
     </aside>`;
 }
 
+// green "Low fee" pill with a filled lightning bolt
+const feeBadge = () =>
+  `<span class="coin__badge"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 4.5 13.5h6.2L9.8 22l9.7-12.2h-6.3z"/></svg>${esc(t("low_fee"))}</span>`;
+
 function coinCards() {
   return SITE.wallets.map((w) => `
     <button type="button" class="coin" data-coin="${w.id}">
       <span class="coin__head">${coinLogo(w)}<span class="coin__sym">${esc(w.symbol)}</span></span>
       <span>${esc(w.name)}</span>
       <span class="coin__net">${esc(w.network)}</span>
-      ${w.lowFee ? `<span class="coin__badge">⚡ ${esc(t("low_fee"))}</span>` : ""}
+      ${w.lowFee ? feeBadge() : ""}
     </button>`).join("");
 }
 
@@ -278,7 +282,7 @@ function init() {
             <div class="method-grid" id="methodGrid" role="radiogroup" aria-label="${t("step_payment")}">${methodCards()}</div>
             <div class="crypto-area" id="cryptoArea" hidden>
               <p class="hint" style="margin:var(--space-5) 0 var(--space-2)">${t("payment_crypto")}</p>
-              <p class="fee-legend"><span class="coin__badge">⚡ ${t("low_fee")}</span> ${t("low_fee_hint")}</p>
+              <p class="fee-legend">${feeBadge()} ${t("low_fee_hint")}</p>
               <div class="coin-grid" id="coinGrid">${coinCards()}</div>
               <div class="pay-box" id="payBox"></div>
             </div>
