@@ -1,9 +1,9 @@
-import { SITE, US_STATES, COUNTRIES } from "../config.js?v=21";
-import { Cart } from "../store.js?v=21";
-import { createOrder, updateOrder, deleteOrder } from "../db.js?v=21";
-import { icon, money, esc, initTheme, mountChrome, toast, copyText, pageHero } from "../ui.js?v=21";
-import { t } from "../i18n.js?v=21";
-import { sendOrderNotification } from "../notify.js?v=21";
+import { SITE, US_STATES, COUNTRIES } from "../config.js?v=22";
+import { Cart } from "../store.js?v=22";
+import { createOrder, updateOrder, deleteOrder } from "../db.js?v=22";
+import { icon, money, esc, initTheme, mountChrome, toast, copyText, pageHero } from "../ui.js?v=22";
+import { t } from "../i18n.js?v=22";
+import { sendOrderNotification } from "../notify.js?v=22";
 
 initTheme();
 
@@ -303,6 +303,14 @@ function init() {
               <div class="hint">${t("tx_hint")}</div>
               <div class="error-text"></div>
             </div>
+            <div class="field" data-field="consent" style="margin-top:var(--space-4)">
+              <label class="consent" for="consent">
+                <input type="checkbox" id="consent" name="consent">
+                <span>${t("consent_label")} <button type="button" class="linklike" id="consentMore" aria-expanded="false" aria-controls="consentText">${t("consent_more")}</button></span>
+              </label>
+              <div class="consent__text" id="consentText" hidden>${t("consent_text")}</div>
+              <div class="error-text"></div>
+            </div>
             <button class="btn btn--primary btn--block btn--lg" type="submit" id="submitBtn" style="margin-top:var(--space-4)">
               ${icon("check", 18)} <span id="submitLabel">${t("place_order")}</span> · ${money(total)}
             </button>
@@ -394,6 +402,15 @@ function init() {
     });
   });
 
+  // data-processing consent: expandable explanation, error clears on tick
+  const consentMore = document.getElementById("consentMore");
+  consentMore.addEventListener("click", () => {
+    const txt = document.getElementById("consentText");
+    txt.hidden = !txt.hidden;
+    consentMore.setAttribute("aria-expanded", String(!txt.hidden));
+  });
+  document.getElementById("consent").addEventListener("change", (e) => { if (e.target.checked) setError("consent", ""); });
+
   // submit
   document.getElementById("checkoutForm").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -407,6 +424,8 @@ function init() {
     if (!validateField("phone", f.phone.value)) ok = false;
     // phone is optional, but we need at least one way to reach the buyer
     const hasContact = !!f.phone.value.trim() || SITE.checkoutContacts.some((c) => f[c.id]?.value.trim());
+    setError("consent", f.consent.checked ? "" : t("err_consent"));
+    if (!f.consent.checked) ok = false;
     setError("contact", hasContact ? "" : t("err_contact"));
     if (!hasContact) { document.querySelector('[data-field="phone"]').classList.add("field--invalid"); ok = false; }
     if (!isCard && !selectedCoin) { openCrypto(); setError("coin", t("err_coin")); ok = false; }
@@ -433,6 +452,7 @@ function init() {
       shipping: shippingFee,
       promoCode: promo ? promo.code.toUpperCase() : "",
       promoPct: promo ? promo.pct : 0,
+      consentAt: new Date().toISOString(), // buyer ticked "I agree to the processing of my data"
       total,
       currency: SITE.currency.code,
       customer: {

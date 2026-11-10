@@ -1,7 +1,7 @@
-import { SITE } from "../config.js?v=21";
-import { getPublishedReviews, getPublishedSettings } from "../db.js?v=21";
-import { icon, esc, safeUrl, initTheme, mountChrome, revealOnScroll, pageHero, countUp } from "../ui.js?v=21";
-import { getLang } from "../i18n.js?v=21";
+import { SITE } from "../config.js?v=22";
+import { getPublishedReviews, getPublishedSettings } from "../db.js?v=22";
+import { icon, esc, safeUrl, initTheme, mountChrome, revealOnScroll, pageHero, countUp } from "../ui.js?v=22";
+import { getLang } from "../i18n.js?v=22";
 
 initTheme();
 

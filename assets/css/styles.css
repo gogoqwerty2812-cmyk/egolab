@@ -1156,3 +1156,10 @@ img.thumb-xs { object-fit: contain; padding: 2px; }
 .cat-card__go { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
   background: var(--cat, var(--surface-2)); color: #fff; flex: 0 0 auto; transition: transform .15s var(--ease); }
 .cat-card:hover .cat-card__go { transform: translateX(3px); }
+
+/* ---------- Checkout: data-processing consent ---------- */
+.consent { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: .86rem; line-height: 1.5; color: var(--fg-muted); }
+.consent input { flex: 0 0 auto; width: 18px; height: 18px; margin: 1px 0 0; accent-color: var(--accent); cursor: pointer; }
+.linklike { background: none; border: 0; padding: 0; font: inherit; color: var(--accent-ink); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.consent__text { margin: 10px 0 0 28px; padding: 12px 14px; border-radius: var(--r-input); background: var(--surface-2); font-size: .8rem; line-height: 1.55; color: var(--fg-muted); }
+.field--invalid .consent { color: var(--fg); }
