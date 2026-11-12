@@ -1,0 +1,18 @@
+# EgoLab
+
+> EgoLab (https://egolab.shop) is an online sports nutrition store selling protein, creatine, pre-workout, vitamins, recovery products and gym accessories, with third-party lab reports. It ships to: United States, Canada, United Kingdom, Ireland, Germany, Austria, Switzerland, France, Belgium, Netherlands, Spain, Portugal, Italy, Poland, Serbia, Bulgaria, Czechia. Prices are in USD; shipping is a flat $17 and free from $99. Payment by card (Visa, Mastercard, American Express, Apple Pay, Google Pay; PayPal in some regions) or crypto (BTC, ETH, USDT on TRON/BNB Smart Chain/Solana, BNB, SOL, TRX, TON, XMR, LTC, DOGE). No account is needed to order.
+
+## Store
+- [Catalog](https://egolab.shop/): browse and buy products
+- [All products](https://egolab.shop/p/index.html): static list of every product with price
+- [Lab reports](https://egolab.shop/certificates.html): third-party test results
+- [Shipping & payment FAQ](https://egolab.shop/blog/egolab-shipping-and-payment-faq.html)
+- [Support](https://egolab.shop/support.html): email egolab@mailfence.com, Telegram https://t.me/egolab_shop
+
+## Articles
+- [Creatine monohydrate: how much to take, when, and what to expect](https://egolab.shop/blog/creatine-monohydrate-dosage.html): A practical creatine guide: the 3–5 g daily dose, whether you need a loading phase, timing, water weight, safety and which form to buy.
+- [EgoLab FAQ: shipping, payment by card or crypto, and how ordering works](https://egolab.shop/blog/egolab-shipping-and-payment-faq.html): Where EgoLab ships, shipping cost, how to pay by card, Apple Pay or crypto (BTC, USDT, ETH, XMR and more), which networks have the lowest fees and how to place an order.
+- [How much protein do you need to build muscle?](https://egolab.shop/blog/how-much-protein-to-build-muscle.html): How many grams of protein per kg of body weight you need to build muscle, how to split it across meals, and where protein powder fits in.
+- [How to choose a pre-workout (and how much caffeine is too much)](https://egolab.shop/blog/how-to-choose-pre-workout.html): What actually works in a pre-workout, effective doses of caffeine, citrulline and beta-alanine, safe caffeine limits and the label red flags to avoid.
+- [How to read a supplement lab report (certificate of analysis)](https://egolab.shop/blog/how-to-read-supplement-lab-report.html): What a supplement certificate of analysis (COA) shows, how to check it matches your tub, which results matter — protein, heavy metals, microbes, banned substances — and the red flags.
+- [Whey concentrate vs whey isolate: which protein should you buy?](https://egolab.shop/blog/whey-concentrate-vs-isolate.html): Whey concentrate, isolate and hydrolysate compared: protein content, lactose, taste, price and how to pick the right one for your goals and stomach.

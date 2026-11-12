@@ -27,7 +27,7 @@ export const SITE = {
   name: "EgoLab",
   tagline: "Curated goods. Private checkout. Crypto native.",
   metaDescription:
-    "A premium marketplace with a curated catalog and fast, private crypto checkout.",
+    "EgoLab sports nutrition store: protein, creatine, pre-workout, vitamins and gym accessories with third-party lab reports. Ships to the US, UK and Europe. Pay by card or crypto.",
 
   // ---- Currency shown next to prices ---------------------------------------
   currency: { code: "USD", symbol: "$", locale: "en-US" },

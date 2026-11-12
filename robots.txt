@@ -1,0 +1,34 @@
+# EgoLab — https://egolab.shop
+# Search engines and AI assistants are welcome to read and cite this site.
+
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /cart.html
+Disallow: /checkout.html
+Disallow: /order.html
+Disallow: /backups/
+Disallow: /tools/
+Disallow: /worker/
+
+# AI search & assistant crawlers — explicitly allowed
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: Bingbot
+User-agent: DuckAssistBot
+User-agent: YandexBot
+Allow: /
+Disallow: /admin.html
+Disallow: /cart.html
+Disallow: /checkout.html
+Disallow: /order.html
+
+Sitemap: https://egolab.shop/sitemap.xml
