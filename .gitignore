@@ -14,3 +14,6 @@ desktop.ini
 
 # Local copies made by tools/shrink-content.py
 backups/
+
+# Python cache
+__pycache__/

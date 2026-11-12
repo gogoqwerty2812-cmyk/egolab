@@ -35,6 +35,15 @@ APP_PAGES = [("", "1.0"), ("reviews.html", "0.6"), ("certificates.html", "0.7"),
 esc = lambda s: html.escape(str(s or ""), quote=True)
 
 
+def absurl(path):
+    """Public URL of a page. The live site serves pages without ".html"
+    (/reviews.html -> 308 -> /reviews), so canonical/sitemap URLs must be the
+    final ones, or Google reports them as "Page with redirect"."""
+    path = re.sub(r"(^|/)index\.html(?=$|\?)", r"\1", path)   # blog/index.html -> blog/
+    path = re.sub(r"\.html(?=$|\?)", "", path)
+    return f"{SITE}/{path}"
+
+
 def version():
     m = re.search(r"\?v=(\d+)", (ROOT / "index.html").read_text(encoding="utf-8"))
     return m.group(1) if m else "1"
@@ -47,7 +56,7 @@ def csp():
 
 def page(*, title, description, path, body, nav, og_type="website", image=OG_IMAGE, jsonld=()):
     """A full static HTML page with the site's look (header/footer added by static.js)."""
-    v, url = version(), f"{SITE}/{path}"
+    v, url = version(), absurl(path)
     # "<" is escaped so a product name can never close the <script> tag
     ld = "\n".join(f'  <script type="application/ld+json">{json.dumps(x, ensure_ascii=False).replace("<", "\\u003c")}</script>'
                    for x in jsonld)
@@ -90,7 +99,7 @@ def page(*, title, description, path, body, nav, og_type="website", image=OG_IMA
 def crumbs(items):
     links = " <span>/</span> ".join(f'<a href="{h}">{esc(t)}</a>' if h is not None else f"<span>{esc(t)}</span>" for t, h in items)
     ld = {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
-        {"@type": "ListItem", "position": i + 1, "name": t, **({"item": f"{SITE}/{h}"} if h is not None else {})}
+        {"@type": "ListItem", "position": i + 1, "name": t, **({"item": absurl(h)} if h is not None else {})}
         for i, (t, h) in enumerate(items)]}
     return f'<nav class="crumbs" aria-label="Breadcrumb">{links}</nav>', ld
 
@@ -126,7 +135,7 @@ def build_blog():
                       "author": {"@type": "Organization", "name": NAME, "url": SITE},
                       "publisher": {"@type": "Organization", "name": NAME, "url": SITE,
                                     "logo": {"@type": "ImageObject", "url": f"{SITE}/assets/img/logo-mark.svg"}},
-                      "mainEntityOfPage": f"{SITE}/{path}"}
+                      "mainEntityOfPage": absurl(path)}
         lds = [article_ld, crumb_ld]
         if faq:
             lds.append({"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
@@ -159,8 +168,8 @@ def build_blog():
 {cards}
       </div>
     </div>"""
-    blog_ld = {"@context": "https://schema.org", "@type": "Blog", "name": f"{NAME} articles", "url": f"{SITE}/blog/index.html",
-               "blogPost": [{"@type": "BlogPosting", "headline": m["title"], "url": f"{SITE}/blog/{m['slug']}.html",
+    blog_ld = {"@context": "https://schema.org", "@type": "Blog", "name": f"{NAME} articles", "url": absurl("blog/index.html"),
+               "blogPost": [{"@type": "BlogPosting", "headline": m["title"], "url": absurl(f"blog/{m['slug']}.html"),
                              "datePublished": m["date"]} for m, _ in posts]}
     (out_dir / "index.html").write_text(
         page(title=f"Articles — protein, creatine, pre-workout guides | {NAME}",
@@ -218,7 +227,7 @@ def build_products():
         product_ld = {"@context": "https://schema.org", "@type": "Product", "name": pr["name"], "sku": pr["id"],
                       "category": pr["category"], "description": summary[:5000] or pr["name"],
                       **({"image": img_abs} if img_abs else {}),
-                      "offers": {"@type": "Offer", "url": f"{SITE}/{buy}", "priceCurrency": "USD",
+                      "offers": {"@type": "Offer", "url": absurl(buy), "priceCurrency": "USD",
                                  "price": f"{pr['price']:.2f}",
                                  "availability": "https://schema.org/" + ("InStock" if pr["in_stock"] else "OutOfStock"),
                                  "seller": {"@type": "Organization", "name": NAME}}}
@@ -256,7 +265,7 @@ def build_products():
 {sections}
     </div>"""
     list_ld = {"@context": "https://schema.org", "@type": "ItemList", "name": f"{NAME} products",
-               "itemListElement": [{"@type": "ListItem", "position": i + 1, "url": f"{SITE}/p/{pr['slug']}.html",
+               "itemListElement": [{"@type": "ListItem", "position": i + 1, "url": absurl(f"p/{pr['slug']}.html"),
                                     "name": pr["name"]} for i, pr in enumerate(products)]}
     (out_dir / "index.html").write_text(
         page(title=f"All products — sports nutrition & gym accessories | {NAME}",
@@ -267,14 +276,31 @@ def build_products():
     return products
 
 
+def existing_products():
+    """--no-products: reuse the product pages already in p/ (built earlier from
+    content.json), so the sitemap and llms.txt keep listing them."""
+    out = []
+    for f in sorted((ROOT / "p").glob("*.html")):
+        if f.name == "index.html":
+            continue
+        m = re.search(r'<script type="application/ld\+json">(\{"@context": "https://schema.org", "@type": "Product".*?)</script>',
+                      f.read_text(encoding="utf-8"), re.S)
+        if not m:
+            continue
+        ld = json.loads(m.group(1))
+        out.append({"slug": f.stem, "name": ld.get("name", f.stem), "category": ld.get("category", "Other"),
+                    "price": float(ld.get("offers", {}).get("price") or 0)})
+    return out
+
+
 # ---- sitemap + llms.txt ------------------------------------------------------
 def build_sitemap(posts, products):
-    urls = [(f"{SITE}/{p}", pr, TODAY) for p, pr in APP_PAGES]
-    urls.append((f"{SITE}/blog/index.html", "0.7", TODAY))
-    urls += [(f"{SITE}/blog/{m['slug']}.html", "0.8", m.get("updated", m["date"])) for m in posts]
+    urls = [(absurl(p), pr, TODAY) for p, pr in APP_PAGES]
+    urls.append((absurl("blog/index.html"), "0.7", TODAY))
+    urls += [(absurl(f"blog/{m['slug']}.html"), "0.8", m.get("updated", m["date"])) for m in posts]
     if products or (ROOT / "p" / "index.html").exists():
-        urls.append((f"{SITE}/p/index.html", "0.8", TODAY))
-    urls += [(f"{SITE}/p/{pr['slug']}.html", "0.7", TODAY) for pr in products]
+        urls.append((absurl("p/index.html"), "0.8", TODAY))
+    urls += [(absurl(f"p/{pr['slug']}.html"), "0.7", TODAY) for pr in products]
     body = "\n".join(f"  <url><loc>{esc(u)}</loc><lastmod>{d}</lastmod><priority>{pr}</priority></url>" for u, pr, d in urls)
     (ROOT / "sitemap.xml").write_text(
         f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{body}\n</urlset>\n',
@@ -292,30 +318,30 @@ def build_llms(posts, products):
              "No account is needed to order.", "",
              "## Store",
              f"- [Catalog]({SITE}/): browse and buy products",
-             f"- [All products]({SITE}/p/index.html): static list of every product with price",
-             f"- [Lab reports]({SITE}/certificates.html): third-party test results",
-             f"- [Shipping & payment FAQ]({SITE}/blog/egolab-shipping-and-payment-faq.html)",
-             f"- [Support]({SITE}/support.html): email {EMAIL}, Telegram {TELEGRAM}", "",
+             f"- [All products]({absurl("p/index.html")}): static list of every product with price",
+             f"- [Lab reports]({absurl("certificates.html")}): third-party test results",
+             f"- [Shipping & payment FAQ]({absurl("blog/egolab-shipping-and-payment-faq.html")})",
+             f"- [Support]({absurl("support.html")}): email {EMAIL}, Telegram {TELEGRAM}", "",
              "## Articles"]
-    lines += [f"- [{m['title']}]({SITE}/blog/{m['slug']}.html): {m['description']}" for m in posts]
+    lines += [f"- [{m['title']}]({absurl(f"blog/{m['slug']}.html")}): {m['description']}" for m in posts]
     if products:
         lines += ["", "## Products"]
         by_cat = {}
         for pr in products:
             by_cat.setdefault(pr["category"], []).append(pr)
         for cat, lst in by_cat.items():
-            lines += ["", f"### {cat}"] + [f"- [{pr['name']}]({SITE}/p/{pr['slug']}.html): ${pr['price']:.2f}" for pr in lst]
+            lines += ["", f"### {cat}"] + [f"- [{pr['name']}]({absurl(f"p/{pr['slug']}.html")}): ${pr['price']:.2f}" for pr in lst]
     (ROOT / "llms.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def main():
     posts = build_blog()
-    products = [] if "--no-products" in sys.argv else build_products()
+    products = existing_products() if "--no-products" in sys.argv else build_products()
     n = build_sitemap(posts, products)
     build_llms(posts, products)
     print("SEO pages ready:")
     print(f"  articles:      {len(posts)}  (blog/)")
-    print(f"  product pages: {len(products)}  (p/)" if "--no-products" not in sys.argv else "  product pages: skipped")
+    print(f"  product pages: {len(products)}  (p/)" + ("  — kept as built, not rebuilt" if "--no-products" in sys.argv else ""))
     print(f"  sitemap.xml:   {n} URLs")
     print("  llms.txt:      updated")
 
